@@ -18,7 +18,7 @@ import {
   InlineStack
 } from "@shopify/polaris";
 import { FiArrowLeft, FiHelpCircle } from 'react-icons/fi';
-import { authenticate } from "../../shopify.server";
+import { authenticate } from "../shopify.server";
 import { addDays, addMonths, format, startOfMonth, endOfMonth } from 'date-fns';
 
 export async function loader({ request }) {

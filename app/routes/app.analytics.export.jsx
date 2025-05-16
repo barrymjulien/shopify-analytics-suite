@@ -17,7 +17,7 @@ import {
   Modal,
   Frame
 } from "@shopify/polaris";
-import { authenticate } from "../../shopify.server";
+import { authenticate } from "../shopify.server";
 import { FiArrowLeft } from 'react-icons/fi';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 

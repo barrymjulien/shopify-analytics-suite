@@ -22,7 +22,7 @@ import {
   InlineStack
 } from "@shopify/polaris";
 import { FiArrowLeft, FiEdit, FiTrash2, FiPlus, FiHelpCircle } from 'react-icons/fi';
-import { authenticate } from "../../shopify.server";
+import { authenticate } from "../shopify.server";
 
 export async function loader({ request }) {
   const { admin, session } = await authenticate.admin(request);
