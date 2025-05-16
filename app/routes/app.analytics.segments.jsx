@@ -26,9 +26,24 @@ import { authenticate } from "../shopify.server";
 
 export async function loader({ request }) {
   const { admin, session } = await authenticate.admin(request);
-  const { shop } = session;
+  const { shop, accessToken } = session;
   
-  // Sample segments data for display
+  // In a production app, we'd fetch this from the database with efficient queries like:
+  // const segments = await prisma.customerSegment.findMany({
+  //   where: { shop },
+  //   select: {
+  //     id: true,
+  //     name: true,
+  //     criteria: true,
+  //     status: true,
+  //     _count: {
+  //       select: { customers: true }
+  //     }
+  //   },
+  //   orderBy: { name: 'asc' }
+  // });
+  
+  // For this demo, use sample data
   const segments = [
     { 
       id: 'vip', 

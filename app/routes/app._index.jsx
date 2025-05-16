@@ -1,5 +1,6 @@
 import { json, redirect } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
+import ErrorBoundary from "../components/ErrorBoundary";
 import {
   Page,
   Layout,
@@ -32,29 +33,26 @@ export const loader = async ({ request }) => {
     console.log("Session shop:", shop);
     console.log("Session token available:", !!accessToken);
     
-    // Check onboarding status - with improved error handling
-    let onboarding;
-    try {
-      onboarding = await getOnboardingState(shop);
-      console.log("Onboarding state:", JSON.stringify(onboarding));
-    } catch (error) {
-      console.error("Critical error fetching onboarding state:", error);
-      // Create a default onboarding state
-      return redirect("/app/dev-mode");
-    }
+    // Load initial data in parallel to reduce wait time
+    const [onboarding, subscription] = await Promise.all([
+      // Check onboarding status
+      getOnboardingState(shop).catch(error => {
+        console.error("Critical error fetching onboarding state:", error);
+        return { completed: false, currentStep: "welcome" };
+      }),
+      
+      // Check subscription status
+      checkSubscription(session).catch(error => {
+        console.error("Error checking subscription:", error);
+        return { hasSubscription: true, plan: "Development" };
+      })
+    ]);
+    
+    console.log("Onboarding state:", JSON.stringify(onboarding));
     
     // For development, give option to skip onboarding
     if (!onboarding.completed) {
       return redirect("/app/onboarding");
-    }
-    
-    // Check subscription after onboarding with error handling
-    let subscription;
-    try {
-      subscription = await checkSubscription(session);
-    } catch (error) {
-      console.error("Error checking subscription:", error);
-      subscription = { hasSubscription: true, plan: "Development" };
     }
     
     // Use dummy data for development
@@ -140,7 +138,7 @@ export const loader = async ({ request }) => {
   }
 };
 
-export default function Index() {
+function IndexContent() {
   const { revenueData, clvData, error } = useLoaderData();
   
   if (error) {
@@ -316,5 +314,13 @@ export default function Index() {
         </Card>
       </BlockStack>
     </Page>
+  );
+}
+
+export default function Index() {
+  return (
+    <ErrorBoundary componentName="Dashboard">
+      <IndexContent />
+    </ErrorBoundary>
   );
 }

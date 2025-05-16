@@ -259,15 +259,22 @@ export class AnalyticsService {
    */
   async getCache(key) {
     try {
-      const cache = await prisma.analyticsCache.findFirst({
+      // Use the unique constraint for faster lookup
+      const cache = await prisma.analyticsCache.findUnique({
         where: {
-          shop: this.shop,
-          metricType: key,
-          expiresAt: { gt: new Date() }
+          shop_metricType: {
+            shop: this.shop,
+            metricType: key
+          }
         }
       });
       
-      return cache?.metricData ? JSON.parse(cache.metricData) : null;
+      // Only return if the cache is valid (not expired)
+      if (cache && new Date(cache.expiresAt) > new Date()) {
+        return cache.metricData ? JSON.parse(cache.metricData) : null;
+      }
+      
+      return null;
     } catch (error) {
       console.error('Cache read error:', error);
       return null;
@@ -304,35 +311,38 @@ export class AnalyticsService {
    * Helper: Update customer profiles in DB
    */
   async updateCustomerProfiles(clvData) {
-    for (const customer of clvData) {
-      try {
-        await prisma.customerProfile.upsert({
-          where: {
-            shop_customerId: {
+    // Use a transaction to batch update all customer profiles
+    try {
+      await prisma.$transaction(
+        clvData.map(customer => 
+          prisma.customerProfile.upsert({
+            where: {
+              shop_customerId: {
+                shop: this.shop,
+                customerId: customer.customerId
+              }
+            },
+            update: {
+              clvScore: customer.predictedCLV,
+              totalOrders: customer.orderCount,
+              totalSpent: customer.totalSpent,
+              lastOrderDate: customer.lastOrderDate ? new Date(customer.lastOrderDate) : null,
+              segment: customer.segment
+            },
+            create: {
               shop: this.shop,
-              customerId: customer.customerId
+              customerId: customer.customerId,
+              clvScore: customer.predictedCLV,
+              totalOrders: customer.orderCount,
+              totalSpent: customer.totalSpent,
+              lastOrderDate: customer.lastOrderDate ? new Date(customer.lastOrderDate) : null,
+              segment: customer.segment
             }
-          },
-          update: {
-            clvScore: customer.predictedCLV,
-            totalOrders: customer.orderCount,
-            totalSpent: customer.totalSpent,
-            lastOrderDate: customer.lastOrderDate ? new Date(customer.lastOrderDate) : null,
-            segment: customer.segment
-          },
-          create: {
-            shop: this.shop,
-            customerId: customer.customerId,
-            clvScore: customer.predictedCLV,
-            totalOrders: customer.orderCount,
-            totalSpent: customer.totalSpent,
-            lastOrderDate: customer.lastOrderDate ? new Date(customer.lastOrderDate) : null,
-            segment: customer.segment
-          }
-        });
-      } catch (error) {
-        console.error('Profile update error:', error);
-      }
+          })
+        )
+      );
+    } catch (error) {
+      console.error('Batch profile update error:', error);
     }
   }
 

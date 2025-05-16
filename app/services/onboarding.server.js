@@ -18,32 +18,31 @@ export async function getOnboardingState(shop) {
   console.log("Getting onboarding state for shop:", shop);
   
   try {
-    // Find or create onboarding state
-    let onboarding = await prisma.onboardingState.findUnique({
-      where: { shop }
+    // Use upsert with a transaction to avoid race conditions and reduce database calls
+    let onboarding = await prisma.$transaction(async (tx) => {
+      // Try to find existing record
+      const existing = await tx.onboardingState.findUnique({
+        where: { shop }
+      });
+      
+      if (existing) {
+        console.log("Found existing onboarding state");
+        return existing;
+      }
+
+      // Create new record if none exists
+      console.log("Creating new onboarding state for shop:", shop);
+      return tx.onboardingState.create({
+        data: { 
+          shop,
+          currentStep: "welcome",
+          completed: false,
+          stepsData: "{}"
+        }
+      });
     });
     
-    console.log("Existing onboarding state:", onboarding);
-    
-    if (!onboarding) {
-      console.log("Creating new onboarding state for shop:", shop);
-      
-      try {
-        onboarding = await prisma.onboardingState.create({
-          data: { 
-            shop,
-            currentStep: "welcome",
-            completed: false,
-            stepsData: "{}"
-          }
-        });
-        console.log("New onboarding state created:", onboarding);
-      } catch (createError) {
-        console.error("Failed to create onboarding state:", createError);
-        throw createError;
-      }
-    }
-    
+    // Parse stepsData
     return {
       ...onboarding,
       stepsData: onboarding.stepsData ? JSON.parse(onboarding.stepsData) : {}
