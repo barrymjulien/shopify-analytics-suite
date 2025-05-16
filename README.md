@@ -6,6 +6,7 @@ The Premium Analytics Suite is an advanced data analytics and visualization tool
 ## Features
 
 - **Interactive Dashboard**: Real-time analytics dashboard with key performance metrics
+- **Revenue Trend**: Visual representation of historical revenue patterns over time
 - **Revenue Forecasting**: AI-powered sales predictions using Prophet machine learning model
 - **Customer Segmentation**: RFM analysis to categorize customers into actionable segments
 - **Product Performance Matrix**: BCG matrix-style analysis of product portfolio
