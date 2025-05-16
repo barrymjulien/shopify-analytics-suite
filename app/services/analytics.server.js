@@ -1,6 +1,7 @@
 import { prisma } from "../db.server";
 import { format, subDays, startOfMonth } from "date-fns";
 import { mean, standardDeviation } from "simple-statistics";
+import { analyticsLogger } from "./loggerService"; // Removed eventLogger import
 
 export class AnalyticsService {
   constructor(shop, accessToken) {
@@ -22,14 +23,18 @@ export class AnalyticsService {
     const orders = await this.fetchOrders(days);
     
     // Calculate metrics
+    const currentPeriodOrders = this.filterOrdersForPeriod(orders, days, 0);
+    const previousPeriodOrders = this.filterOrdersForPeriod(orders, days, 1); // 1 for one period ago
+
     const metrics = {
-      totalRevenue: this.calculateTotalRevenue(orders),
-      averageOrderValue: this.calculateAOV(orders),
-      orderCount: orders.length,
-      conversionRate: await this.calculateConversionRate(orders, days),
-      topProducts: this.getTopProducts(orders),
-      revenueByDay: this.groupRevenueByDay(orders),
-      periodComparison: this.comparePeriods(orders, days)
+      totalRevenue: this.calculateTotalRevenue(currentPeriodOrders),
+      averageOrderValue: this.calculateAOV(currentPeriodOrders),
+      orderCount: currentPeriodOrders.length,
+      conversionRate: await this.calculateConversionRate(currentPeriodOrders, days),
+      topProducts: this.getTopProducts(currentPeriodOrders),
+      revenueByDay: this.groupRevenueByDay(currentPeriodOrders),
+      previousPeriodRevenueByDay: this.groupRevenueByDay(previousPeriodOrders), // Added for comparison
+      periodComparison: this.comparePeriods(currentPeriodOrders, previousPeriodOrders) // Modified to take filtered orders
     };
 
     // Cache results
@@ -113,7 +118,10 @@ export class AnalyticsService {
       );
       
       if (!response.ok) {
-        console.error(`Failed to fetch orders: ${response.status} ${response.statusText}`);
+        analyticsLogger.error(`Failed to fetch orders: ${response.status} ${response.statusText}`, null, {
+          shop: this.shop,
+          days
+        });
         return [];
       }
       
@@ -128,7 +136,10 @@ export class AnalyticsService {
       
       return validOrders;
     } catch (error) {
-      console.error('Error fetching orders:', error);
+      analyticsLogger.error('Error fetching orders:', error, {
+        shop: this.shop,
+        days
+      });
       return [];
     }
   }
@@ -190,7 +201,10 @@ export class AnalyticsService {
             revenueByDay[day] += price;
           }
         } catch (err) {
-          console.error('Error processing order for revenue by day:', err);
+          analyticsLogger.error('Error processing order for revenue by day:', err, {
+            shop: this.shop,
+            orderId: order.id || 'unknown'
+          });
           // Continue processing other orders
         }
       });
@@ -200,7 +214,9 @@ export class AnalyticsService {
         .map(([date, revenue]) => ({ date, revenue }))
         .sort((a, b) => new Date(a.date) - new Date(b.date));
     } catch (error) {
-      console.error('Error grouping revenue by day:', error);
+      analyticsLogger.error('Error grouping revenue by day:', error, {
+        shop: this.shop
+      });
       // Return empty sample data as fallback
       const today = new Date();
       return Array.from({length: 30}, (_, i) => ({
@@ -276,7 +292,10 @@ export class AnalyticsService {
       
       return null;
     } catch (error) {
-      console.error('Cache read error:', error);
+      analyticsLogger.error('Cache read error:', error, {
+        shop: this.shop,
+        metricType: key
+      });
       return null;
     }
   }
@@ -303,7 +322,10 @@ export class AnalyticsService {
         }
       });
     } catch (error) {
-      console.error('Cache write error:', error);
+      analyticsLogger.error('Cache write error:', error, {
+        shop: this.shop,
+        metricType: key
+      });
     }
   }
 
@@ -342,7 +364,10 @@ export class AnalyticsService {
         )
       );
     } catch (error) {
-      console.error('Batch profile update error:', error);
+      analyticsLogger.error('Batch profile update error:', error, {
+        shop: this.shop,
+        customerCount: clvData.length
+      });
     }
   }
 
@@ -414,22 +439,18 @@ export class AnalyticsService {
   /**
    * Helper: Compare current period with previous
    */
-  comparePeriods(orders, days) {
+  filterOrdersForPeriod(allOrders, days, periodsAgo = 0) {
     const now = new Date();
-    const periodEnd = now;
-    const periodStart = subDays(now, days);
-    const previousPeriodStart = subDays(periodStart, days);
-    
-    const currentOrders = orders.filter(order => 
-      new Date(order.created_at) >= periodStart && 
-      new Date(order.created_at) <= periodEnd
-    );
-    
-    const previousOrders = orders.filter(order => 
-      new Date(order.created_at) >= previousPeriodStart && 
-      new Date(order.created_at) < periodStart
-    );
-    
+    const periodEnd = subDays(now, days * periodsAgo);
+    const periodStart = subDays(periodEnd, days);
+
+    return allOrders.filter(order => {
+      const orderDate = new Date(order.created_at);
+      return orderDate >= periodStart && orderDate < periodEnd; // Use < periodEnd for non-overlapping
+    });
+  }
+
+  comparePeriods(currentOrders, previousOrders) { // Modified to accept pre-filtered orders
     const currentRevenue = this.calculateTotalRevenue(currentOrders);
     const previousRevenue = this.calculateTotalRevenue(previousOrders);
     
@@ -465,7 +486,10 @@ export class AnalyticsService {
       );
       
       if (!response.ok) {
-        console.error(`Failed to fetch customer orders: ${response.status} ${response.statusText}`);
+        analyticsLogger.error(`Failed to fetch customer orders: ${response.status} ${response.statusText}`, null, {
+          shop: this.shop,
+          customerId
+        });
         return [];
       }
       
@@ -480,7 +504,10 @@ export class AnalyticsService {
       
       return validOrders;
     } catch (error) {
-      console.error('Error fetching customer orders:', error);
+      analyticsLogger.error('Error fetching customer orders:', error, {
+        shop: this.shop,
+        customerId
+      });
       return [];
     }
   }
@@ -524,7 +551,10 @@ export class AnalyticsService {
       // For MVP, we'll return a simulated conversion rate between 1-5%
       return Math.random() * 4 + 1;
     } catch (error) {
-      console.error('Conversion rate calculation error:', error);
+      analyticsLogger.error('Conversion rate calculation error:', error, {
+        shop: this.shop,
+        days
+      });
       return null;
     }
   }

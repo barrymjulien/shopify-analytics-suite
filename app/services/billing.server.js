@@ -38,13 +38,26 @@ export const SUBSCRIPTION_PLANS = {
 /**
  * Check if the merchant has an active subscription
  */
-export async function checkSubscription(session) {
+export async function checkSubscription(admin) { // Changed parameter name from session to admin
+  if (!admin || !admin.graphql) { // Check for admin object and its graphql property
+    console.error("checkSubscription: Invalid admin object or missing graphql client.", { 
+      hasAdmin: !!admin, 
+      hasGraphql: !!admin?.graphql 
+    });
+    // If the admin context or its graphql client is invalid, we can't check.
+    return { 
+      hasSubscription: false, 
+      error: "Invalid admin context for billing check." 
+    };
+  }
+
   try {
-    const client = new GraphqlClient({session});
+    // const client = admin.graphql; // admin.graphql is a function that makes the query
     
     // Check if the merchant has an active subscription
-    const response = await client.query({
-      data: `{
+    // The admin.graphql function takes the query string directly.
+    const response = await admin.graphql(`
+      query {
         appInstallation {
           activeSubscriptions {
             name
@@ -52,10 +65,12 @@ export async function checkSubscription(session) {
             currentPeriodEnd
           }
         }
-      }`
-    });
+      }
+    `);
     
-    const { activeSubscriptions } = response.body.data.appInstallation;
+    // The response from admin.graphql() is typically already parsed JSON
+    const responseData = await response.json(); // Ensure we get the JSON body
+    const { activeSubscriptions } = responseData.data.appInstallation;
     
     if (activeSubscriptions && activeSubscriptions.length > 0) {
       const subscription = activeSubscriptions[0];

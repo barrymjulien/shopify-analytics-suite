@@ -22,19 +22,36 @@ function CustomerSegmentsContent({ segments }) {
     );
   }
   
-  const segmentColors = {
-    'VIP': 'primary',
-    'Loyal': 'success',
-    'Promising': 'info',
-    'New Customer': 'attention',
-    'Needs Attention': 'warning',
-    'At Risk': 'critical'
+  // Custom style for all segments to ensure consistent appearance
+  const customStyles = {
+    'VIP': {
+      backgroundColor: '#000000'  // Black
+    },
+    'Loyal': {
+      backgroundColor: '#008060'  // Green
+    },
+    'Promising': {
+      backgroundColor: '#8c5e58'  // Brown
+    },
+    'New Customer': {
+      backgroundColor: '#9c6ade'  // Purple
+    },
+    'At Risk': {
+      backgroundColor: '#d82c0d'  // Red
+    },
+    'Needs Attention': {
+      backgroundColor: '#f49342'  // Orange
+    },
+    'default': {
+      backgroundColor: '#637381'  // Gray
+    }
   };
   
   return (
     <BlockStack gap="400">
       {validSegments.map((segment) => {
         const percentage = (segment.count / total) * 100;
+        const style = customStyles[segment.name] || customStyles.default;
         
         return (
           <BlockStack key={segment.name} gap="200">
@@ -44,11 +61,20 @@ function CustomerSegmentsContent({ segments }) {
                 {segment.count} ({percentage.toFixed(1)}%)
               </Text>
             </InlineStack>
-            <ProgressBar
-              progress={percentage}
-              tone={segmentColors[segment.name] || 'default'}
-              size="small"
-            />
+            <div style={{
+              width: '100%',
+              height: '4px',
+              backgroundColor: '#e1e3e5',
+              borderRadius: '2px',
+              overflow: 'hidden'
+            }}>
+              <div style={{
+                width: `${percentage}%`,
+                height: '100%',
+                backgroundColor: style.backgroundColor,
+                borderRadius: '2px'
+              }} />
+            </div>
           </BlockStack>
         );
       })}

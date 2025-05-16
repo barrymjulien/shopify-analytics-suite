@@ -1,5 +1,6 @@
 import React from 'react';
 import { Banner, InlineStack, Button, Box, Text, Card } from "@shopify/polaris";
+import { eventLogger } from '../services/loggerService';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -17,8 +18,18 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // You can log the error to an error reporting service
-    console.error("Component Error:", error, errorInfo);
+    // Log the error using our logging service
+    // Note: eventLogger is now an alias for uiLogger, which uses .error(message, errorObj, data)
+    eventLogger.error(
+      `Error in component: ${this.props.componentName || 'unknown'}`, 
+      error, // The error object
+      { 
+        context: 'react_error_boundary', // Added context here
+        componentName: this.props.componentName || 'unknown',
+        componentStack: errorInfo.componentStack 
+      }
+    );
+    
     this.setState({
       error,
       errorInfo

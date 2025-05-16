@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 30
+    },
+    "auditLog": "C:\\Users\\barry\\Documents\\apps\\shopify-analytics-suite\\analytics-suite\\logs\\.3c88e69ab43b3418f4c3d69a5b300e18739995d4-audit.json",
+    "files": [
+        {
+            "date": 1747392843851,
+            "name": "C:\\Users\\barry\\Documents\\apps\\shopify-analytics-suite\\analytics-suite\\logs\\combined-2025-05-16.log",
+            "hash": "cc54fb130cf5c7c8f933e8ec1d9128b6369c1a686fe4bfbabc070b7ba9c74276"
+        }
+    ],
+    "hashType": "sha256"
+}

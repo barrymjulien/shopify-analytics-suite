@@ -17,40 +17,57 @@ import {
   Icon,
   InlineStack
 } from "@shopify/polaris";
+// At the top of the file, add these imports
+import { WeeklyForecastVisualization } from "../components/WeeklyForecastVisualization";
+import { ForecastScenarioTable } from "../components/ForecastScenarioTable";
 import { FiArrowLeft, FiHelpCircle } from 'react-icons/fi';
 import { authenticate } from "../shopify.server";
-import { addDays, addMonths, format, startOfMonth, endOfMonth } from 'date-fns';
+import { addDays, addMonths, format, startOfMonth, endOfMonth, parseISO, differenceInDays, eachDayOfInterval } from 'date-fns';
 
 export async function loader({ request }) {
   const { admin, session } = await authenticate.admin(request);
   const { shop } = session;
+
+  const url = new URL(request.url);
+  const startDateParam = url.searchParams.get("start");
+  const endDateParam = url.searchParams.get("end");
+
+  let startDate = startDateParam ? parseISO(startDateParam) : new Date();
+  let endDate = endDateParam ? parseISO(endDateParam) : new Date();
   
-  // Sample forecast data
-  const today = new Date();
-  
-  // Daily forecast for the next 30 days
-  const dailyForecast = Array.from({ length: 30 }, (_, i) => {
-    const date = addDays(today, i);
-    const baseSales = 1000 + Math.random() * 500;
+  if (differenceInDays(endDate, startDate) < 0) {
+    // Swap if start is after end
+    [startDate, endDate] = [endDate, startDate];
+  }
+
+  // Ensure we are generating historical-like data for the chart
+  // For this example, we'll generate data within the selected range.
+  // In a real app, this would query a database.
+  const dateInterval = eachDayOfInterval({ start: startDate, end: endDate });
+
+  const dailyRevenueData = dateInterval.map(date => {
+    const baseSales = 800 + Math.random() * 600; // Simulate historical sales
     
-    // Add some weekly patterns - weekends higher
     const dayOfWeek = date.getDay();
-    const weekendBoost = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.3 : 1.0;
+    const weekendBoost = (dayOfWeek === 0 || dayOfWeek === 6) ? 1.2 : 1.0;
+    const randomFactor = 0.85 + Math.random() * 0.3;
     
-    // Add some randomness
-    const randomFactor = 0.9 + Math.random() * 0.2;
-    
-    const forecasted = baseSales * weekendBoost * randomFactor;
+    const revenue = baseSales * weekendBoost * randomFactor;
     
     return {
       date: format(date, 'yyyy-MM-dd'),
-      forecasted: Math.round(forecasted),
-      lower: Math.round(forecasted * 0.85),
-      upper: Math.round(forecasted * 1.15),
+      revenue: Math.round(revenue), // Changed 'forecasted' to 'revenue'
+      // For simplicity, lower/upper bounds are not critical for RevenueTrendChart
+      // but could be added if needed by other components.
+      // lower: Math.round(revenue * 0.85), 
+      // upper: Math.round(revenue * 1.15),
     };
   });
   
-  // Monthly forecast for the next 6 months
+  // Monthly forecast can remain future-looking for the dedicated forecast page,
+  // but the dashboard needs historical daily data.
+  // For now, we'll keep the existing monthly forecast logic as it's for a different view.
+  const today = new Date(); // Keep this for the separate monthly forecast view
   const monthlyForecast = Array.from({ length: 6 }, (_, i) => {
     const date = addMonths(today, i);
     const startDate = startOfMonth(date);
@@ -74,28 +91,33 @@ export async function loader({ request }) {
       month: format(date, 'MMMM yyyy'),
       startDate: format(startDate, 'yyyy-MM-dd'),
       endDate: format(endDate, 'yyyy-MM-dd'),
-      forecasted: Math.round(forecasted),
+      revenue: Math.round(forecasted), // Changed 'forecasted' to 'revenue' for consistency
       lower: Math.round(forecasted * 0.9),
       upper: Math.round(forecasted * 1.1),
-      orders: Math.round(forecasted / 85)
+      orders: Math.round(forecasted / 85) // Assuming 'forecasted' was intended for order calc
     };
   });
   
+  // The AnalyticsDashboard expects a structure like { dailyRevenue: [...] }
+  // The RevenueForecast page itself uses dailyForecast directly.
+  // We will return dailyRevenue for the dashboard, and keep dailyForecast for this page's own use.
   return json({ 
     shop,
-    dailyForecast,
-    monthlyForecast,
+    dailyRevenue: dailyRevenueData, // This is what AnalyticsDashboard will use
+    dailyForecast: dailyRevenueData, // For this page's own "daily" view if needed
+    monthlyForecast, // For this page's "monthly" view
     summary: {
-      nextMonthRevenue: monthlyForecast[0].forecasted,
+      nextMonthRevenue: monthlyForecast.length > 0 ? monthlyForecast[0].revenue : 0,
       nextMonthGrowth: 12, // percentage
-      q4Total: monthlyForecast.slice(3, 6).reduce((sum, month) => sum + month.forecasted, 0),
+      q4Total: monthlyForecast.slice(3, 6).reduce((sum, month) => sum + month.revenue, 0),
       confidenceScore: 85 // percentage
     }
   });
 }
 
 export default function RevenueForecast() {
-  const { dailyForecast, monthlyForecast, summary } = useLoaderData();
+  // Note: useLoaderData() will now provide dailyRevenue, dailyForecast, monthlyForecast
+  const { dailyRevenue, dailyForecast, monthlyForecast, summary } = useLoaderData();
   const navigate = useNavigate();
   
   // State
@@ -119,7 +141,8 @@ export default function RevenueForecast() {
   
   // Get forecast data based on selected period
   const getForecastData = () => {
-    return forecastPeriod === 'daily' ? dailyForecast : monthlyForecast;
+    // The RevenueForecast page itself might use dailyForecast or monthlyForecast
+    return forecastPeriod === 'daily' ? (dailyForecast || []) : (monthlyForecast || []);
   };
   
   // Prepare forecast table rows
@@ -129,14 +152,14 @@ export default function RevenueForecast() {
     if (forecastPeriod === 'daily') {
       return data.map(day => [
         day.date,
-        formatCurrency(day.forecasted),
+        formatCurrency(day.revenue), // Use 'revenue' key
         formatCurrency(day.lower),
         formatCurrency(day.upper),
       ]);
     } else {
       return data.map(month => [
         month.month,
-        formatCurrency(month.forecasted),
+        formatCurrency(month.revenue), // Use 'revenue' key
         formatCurrency(month.lower),
         formatCurrency(month.upper),
         month.orders.toString()
@@ -167,30 +190,18 @@ export default function RevenueForecast() {
   };
   
   // Render forecast canvas chart
+  // Replace the renderForecastChart function with:
   const renderForecastChart = () => {
     return (
-      <Card>
-        <BlockStack gap="400">
-          <Text variant="headingMd" as="h3">
-            Revenue Forecast Visualization
-          </Text>
-          
-          <div style={{ height: '300px', position: 'relative' }}>
-            <canvas id="forecastChart" width="100%" height="100%" style={{ width: '100%', height: '100%' }}></canvas>
-            
-            {/* Fallback message for real chart (would be drawn with useEffect + canvas/recharts in a real implementation) */}
-            <Box style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Text variant="bodyMd" tone="subdued">
-                [Revenue Forecast Chart - Would display a line chart with forecast and confidence intervals]
-              </Text>
-            </Box>
-          </div>
-        </BlockStack>
-      </Card>
+      <WeeklyForecastVisualization
+        data={getForecastData()}
+        title="Revenue Forecast Visualization"
+      />
     );
   };
   
   // Render forecast tab
+  // Replace the renderForecastTab function with:
   const renderForecastTab = () => {
     return (
       <BlockStack gap="500">
@@ -319,74 +330,75 @@ export default function RevenueForecast() {
   };
   
   // Render scenarios tab
+  // Replace the renderScenariosTab function with:
   const renderScenariosTab = () => {
+    // Convert the scenario data to the format expected by ForecastScenarioTable
+    const scenariosData = [
+      {
+        id: 'base',
+        name: 'Base Case',
+        description: 'Current forecast based on historical data',
+        forecast: summary.q4Total,
+        change: 0,
+        isBase: true,
+        dateGenerated: new Date().toLocaleDateString(),
+        assumptions: [
+          { name: 'Growth Rate', value: '8%' },
+          { name: 'Seasonal Factor', value: 'Q4 Boost' },
+          { name: 'Market Trend', value: '+2%' }
+        ]
+      },
+      {
+        id: 'optimistic',
+        name: 'Optimistic',
+        description: 'Assumes 15% higher growth than baseline',
+        forecast: summary.q4Total * 1.15,
+        change: 15,
+        dateGenerated: new Date().toLocaleDateString(),
+        assumptions: [
+          { name: 'Growth Rate', value: '12%' },
+          { name: 'Seasonal Factor', value: 'Strong Q4 Boost' },
+          { name: 'Market Trend', value: '+5%' }
+        ],
+        recommendations: 'Increase inventory levels to prepare for higher demand. Consider expanded marketing campaigns to capitalize on growth.'
+      },
+      {
+        id: 'conservative',
+        name: 'Conservative',
+        description: 'Assumes 10% lower growth than baseline',
+        forecast: summary.q4Total * 0.9,
+        change: -10,
+        dateGenerated: new Date().toLocaleDateString(),
+        assumptions: [
+          { name: 'Growth Rate', value: '6%' },
+          { name: 'Seasonal Factor', value: 'Mild Q4 Boost' },
+          { name: 'Market Trend', value: '-1%' }
+        ],
+        recommendations: 'Maintain current inventory levels. Focus on customer retention over acquisition.'
+      },
+      {
+        id: 'marketing',
+        name: 'Marketing Push',
+        description: 'Includes planned Q4 marketing campaign',
+        forecast: summary.q4Total * 1.25,
+        change: 25,
+        dateGenerated: new Date().toLocaleDateString(),
+        assumptions: [
+          { name: 'Growth Rate', value: '8%' },
+          { name: 'Seasonal Factor', value: 'Q4 Boost' },
+          { name: 'Marketing ROI', value: '2.5x' },
+          { name: 'Campaign Budget', value: '$25,000' }
+        ],
+        recommendations: 'Implement the planned marketing campaign with focus on high-value customer segments. Prepare for increased customer support needs.'
+      }
+    ];
+    
     return (
       <BlockStack gap="500">
-        <Card>
-          <BlockStack gap="400">
-            <Text variant="headingMd" as="h3">
-              Alternative Forecast Scenarios
-            </Text>
-            
-            <Banner tone="info">
-              <p>Forecast scenarios help you plan for different possible outcomes based on market conditions and business decisions.</p>
-            </Banner>
-            
-            <DataTable
-              columnContentTypes={['text', 'text', 'numeric', 'text']}
-              headings={['Scenario', 'Description', 'Q4 Forecast', 'Actions']}
-              rows={[
-                [
-                  <Text key="base" variant="bodyMd" fontWeight="bold">Base Case</Text>,
-                  'Current forecast based on historical data',
-                  formatCurrency(summary.q4Total),
-                  <Button key="base-view" plain>View Details</Button>
-                ],
-                [
-                  <Text key="optimistic" variant="bodyMd">Optimistic</Text>,
-                  'Assumes 15% higher growth than baseline',
-                  formatCurrency(summary.q4Total * 1.15),
-                  <Button key="opt-view" plain>View Details</Button>
-                ],
-                [
-                  <Text key="conservative" variant="bodyMd">Conservative</Text>,
-                  'Assumes 10% lower growth than baseline',
-                  formatCurrency(summary.q4Total * 0.9),
-                  <Button key="cons-view" plain>View Details</Button>
-                ],
-                [
-                  <Text key="marketing" variant="bodyMd">Marketing Push</Text>,
-                  'Includes planned Q4 marketing campaign',
-                  formatCurrency(summary.q4Total * 1.25),
-                  <Button key="mkt-view" plain>View Details</Button>
-                ]
-              ]}
-            />
-          </BlockStack>
-        </Card>
-        
-        <Card>
-          <BlockStack gap="400">
-            <Text variant="headingMd" as="h3">
-              Forecast Scenario Comparison
-            </Text>
-            
-            <div style={{ height: '300px', position: 'relative' }}>
-              <canvas id="scenariosChart" width="100%" height="100%" style={{ width: '100%', height: '100%' }}></canvas>
-              
-              {/* Fallback message for real chart */}
-              <Box style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Text variant="bodyMd" tone="subdued">
-                  [Scenario Comparison Chart - Would display multiple forecast lines for different scenarios]
-                </Text>
-              </Box>
-            </div>
-            
-            <Box paddingBlockStart="300">
-              <Button>Create Custom Scenario</Button>
-            </Box>
-          </BlockStack>
-        </Card>
+        <ForecastScenarioTable
+          scenarios={scenariosData}
+          title="Alternative Forecast Scenarios"
+        />
       </BlockStack>
     );
   };

@@ -383,7 +383,12 @@ export default function ManageCustomerSegments() {
           title={`Edit ${currentSegment.name} Segment`}
           primaryAction={{
             content: 'Save Changes',
-            onAction: () => setShowEditModal(false)
+            // onAction: () => setShowEditModal(false) // Will be handled by a save function
+            onAction: () => {
+              // Placeholder for actual save logic
+              console.log("Saving segment:", currentSegment);
+              setShowEditModal(false);
+            }
           }}
           secondaryActions={[
             {
@@ -397,7 +402,8 @@ export default function ManageCustomerSegments() {
               <TextField
                 label="Segment Name"
                 value={currentSegment.name}
-                onChange={() => {}}
+                onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, name: newValue }))}
+                autoComplete="off"
               />
               
               <Box paddingBlockStart="300">
@@ -408,10 +414,11 @@ export default function ManageCustomerSegments() {
                 <RangeSlider
                   output
                   min={0}
-                  max={2000}
+                  max={5000} // Increased max for more flexibility
                   step={50}
                   value={currentSegment.criteria.minSpent}
-                  onChange={() => {}}
+                  onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, criteria: { ...prev.criteria, minSpent: newValue } }))}
+                  prefix="$"
                 />
               </Box>
               
@@ -423,33 +430,35 @@ export default function ManageCustomerSegments() {
                 <RangeSlider
                   output
                   min={1}
-                  max={10}
+                  max={20} // Increased max
                   step={1}
                   value={currentSegment.criteria.minOrders}
-                  onChange={() => {}}
+                  onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, criteria: { ...prev.criteria, minOrders: newValue } }))}
                 />
               </Box>
               
               <Box>
                 <InlineStack align="space-between">
-                  <Text variant="bodyMd">Order Recency (days):</Text>
+                  <Text variant="bodyMd">Order Recency (days ago max):</Text>
                   <Text variant="bodyMd">{currentSegment.criteria.recency}</Text>
                 </InlineStack>
                 <RangeSlider
                   output
-                  min={30}
+                  min={7} // Min recency
                   max={365}
-                  step={15}
+                  step={7}
                   value={currentSegment.criteria.recency}
-                  onChange={() => {}}
+                  onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, criteria: { ...prev.criteria, recency: newValue } }))}
+                  suffix="days"
                 />
               </Box>
               
               <TextField
                 label="Automation Settings"
                 value={currentSegment.automation || ""}
-                onChange={() => {}}
+                onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, automation: newValue }))}
                 multiline={3}
+                autoComplete="off"
               />
             </BlockStack>
           </Modal.Section>
@@ -465,7 +474,11 @@ export default function ManageCustomerSegments() {
           primaryAction={{
             content: 'Delete Segment',
             tone: 'critical',
-            onAction: () => setShowDeleteModal(false)
+            // onAction: () => setShowDeleteModal(false) // Placeholder for actual delete
+            onAction: () => {
+              console.log("Deleting segment:", currentSegment.id);
+              setShowDeleteModal(false);
+            }
           }}
           secondaryActions={[
             {
@@ -497,7 +510,11 @@ export default function ManageCustomerSegments() {
           title="Create New Segment"
           primaryAction={{
             content: 'Create Segment',
-            onAction: () => setShowNewModal(false)
+            // onAction: () => setShowNewModal(false) // Placeholder for actual create
+            onAction: () => {
+              console.log("Creating new segment:", currentSegment);
+              setShowNewModal(false);
+            }
           }}
           secondaryActions={[
             {
@@ -511,74 +528,88 @@ export default function ManageCustomerSegments() {
               <TextField
                 label="Segment Name"
                 placeholder="e.g., High Value Customers"
-                value=""
-                onChange={() => {}}
+                value={currentSegment.name}
+                onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, name: newValue }))}
+                autoComplete="off"
               />
               
               <Box paddingBlockStart="300">
                 <InlineStack align="space-between">
                   <Text variant="bodyMd">Minimum Total Spent:</Text>
-                  <Text variant="bodyMd">{formatCurrency(500)}</Text>
+                  <Text variant="bodyMd">{formatCurrency(currentSegment.criteria.minSpent)}</Text>
                 </InlineStack>
                 <RangeSlider
                   output
                   min={0}
-                  max={2000}
+                  max={5000}
                   step={50}
-                  value={500}
-                  onChange={() => {}}
+                  value={currentSegment.criteria.minSpent}
+                  onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, criteria: { ...prev.criteria, minSpent: newValue } }))}
+                  prefix="$"
                 />
               </Box>
               
               <Box>
                 <InlineStack align="space-between">
                   <Text variant="bodyMd">Minimum Order Count:</Text>
-                  <Text variant="bodyMd">2</Text>
+                  <Text variant="bodyMd">{currentSegment.criteria.minOrders}</Text>
                 </InlineStack>
                 <RangeSlider
                   output
                   min={1}
-                  max={10}
+                  max={20}
                   step={1}
-                  value={2}
-                  onChange={() => {}}
+                  value={currentSegment.criteria.minOrders}
+                  onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, criteria: { ...prev.criteria, minOrders: newValue } }))}
                 />
               </Box>
               
               <Box>
                 <InlineStack align="space-between">
-                  <Text variant="bodyMd">Order Recency (days):</Text>
-                  <Text variant="bodyMd">90</Text>
+                  <Text variant="bodyMd">Order Recency (days ago max):</Text>
+                  <Text variant="bodyMd">{currentSegment.criteria.recency}</Text>
                 </InlineStack>
                 <RangeSlider
                   output
-                  min={30}
+                  min={7}
                   max={365}
-                  step={15}
-                  value={90}
-                  onChange={() => {}}
+                  step={7}
+                  value={currentSegment.criteria.recency}
+                  onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, criteria: { ...prev.criteria, recency: newValue } }))}
+                  suffix="days"
                 />
               </Box>
               
               <Select
-                label="Segment Type"
+                label="Segment Type (Preset)"
                 options={[
-                  {label: 'Custom', value: 'custom'},
-                  {label: 'High Value', value: 'high-value'},
-                  {label: 'At Risk', value: 'at-risk'},
-                  {label: 'New Customer', value: 'new'}
+                  {label: 'Custom (define below)', value: 'custom'},
+                  {label: 'High Value Customers', value: 'high-value'},
+                  {label: 'Frequent Buyers', value: 'frequent'},
+                  {label: 'New Customers (Last 30 days)', value: 'new'},
+                  {label: 'At Risk (No purchase in 90 days)', value: 'at-risk'}
                 ]}
-                value="custom"
-                onChange={() => {}}
-                helpText="Select a template or create a custom segment"
+                value={currentSegment.type || 'custom'} // Assuming a 'type' field for presets
+                onChange={(newValue) => {
+                  // Placeholder: Apply preset criteria if a type is selected
+                  setCurrentSegment(prev => ({ ...prev, type: newValue }));
+                  if (newValue === 'high-value') {
+                    setCurrentSegment(prev => ({ ...prev, criteria: { minSpent: 1000, minOrders: 5, recency: 90 } }));
+                  } else if (newValue === 'new') {
+                     setCurrentSegment(prev => ({ ...prev, criteria: { minSpent: 0, minOrders: 1, recency: 30 } }));
+                  }
+                  // Add other presets as needed
+                }}
+                helpText="Select a template or define custom criteria below."
               />
               
               <TextField
                 label="Automation Settings (Optional)"
                 placeholder="e.g., Send email when customer enters segment"
-                value=""
-                onChange={() => {}}
+                value={currentSegment.automation || ""}
+                onChange={(newValue) => setCurrentSegment(prev => ({ ...prev, automation: newValue }))}
                 multiline={3}
+                autoComplete="off"
               />
             </BlockStack>
           </Modal.Section>

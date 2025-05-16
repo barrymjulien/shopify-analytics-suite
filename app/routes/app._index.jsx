@@ -1,5 +1,6 @@
 import { json, redirect } from "@remix-run/node";
-import { useLoaderData, Link } from "@remix-run/react";
+import { useLoaderData, Link, useNavigate } from "@remix-run/react"; // Added useNavigate
+import { useState } from "react"; // Added useState
 import ErrorBoundary from "../components/ErrorBoundary";
 import {
   Page,
@@ -20,7 +21,8 @@ import { AnalyticsService } from "../services/analytics.server";
 import { checkSubscription } from "../services/billing.server";
 import { getOnboardingState } from "../services/onboarding.server";
 import { MetricCard } from "../components/MetricCard";
-import { RevenueChart } from "../components/RevenueChart";
+// Replace the import for RevenueChart with:
+import { RevenueTrendChart } from "../components/RevenueTrendChart";
 import { CustomerSegments } from "../components/CustomerSegments";
 
 import { format, subDays } from 'date-fns';
@@ -42,9 +44,12 @@ export const loader = async ({ request }) => {
       }),
       
       // Check subscription status
-      checkSubscription(session).catch(error => {
+      // Pass the admin object which contains an authenticated graphql client
+      checkSubscription(admin).catch(error => { 
         console.error("Error checking subscription:", error);
-        return { hasSubscription: true, plan: "Development" };
+        // It seems the original code intended to catch this and return a default.
+        // The error message from terminal indicates this catch IS working.
+        return { hasSubscription: true, plan: "Development" }; 
       })
     ]);
     
@@ -63,6 +68,11 @@ export const loader = async ({ request }) => {
       revenueByDay: Array.from({ length: 30 }, (_, i) => ({
         date: format(subDays(new Date(), 29 - i), 'yyyy-MM-dd'),
         revenue: 1000 + Math.random() * 1000
+      })),
+      // Add dummy data for previous period for comparison testing in dev
+      previousPeriodRevenueByDay: Array.from({ length: 30 }, (_, i) => ({
+        date: format(subDays(new Date(), 59 - i), 'yyyy-MM-dd'), // Shifted back 30 days
+        revenue: 800 + Math.random() * 800 // Slightly different values for visual distinction
       })),
       periodComparison: {
         revenueTrend: 12,
@@ -198,6 +208,16 @@ export const loader = async ({ request }) => {
 
 function IndexContent() {
   const { revenueData, clvData, error } = useLoaderData();
+  const navigate = useNavigate(); // For programmatic navigation if needed
+
+  const [comparisonEnabled, setComparisonEnabled] = useState(false);
+
+  const handleToggleComparison = () => {
+    setComparisonEnabled(prev => !prev);
+    // Note: Data for comparison (revenueData.previousPeriodRevenueByDay)
+    // is already loaded by the loader via AnalyticsService.
+    // If it were fetched client-side, this handler would trigger that fetch.
+  };
   
   if (error) {
     return (
@@ -298,7 +318,12 @@ function IndexContent() {
                   Revenue Trend
                 </Text>
                 <Box padding="400">
-                  <RevenueChart data={revenueData.revenueByDay} />
+                  <RevenueTrendChart 
+                    data={revenueData.revenueByDay} 
+                    comparisonData={revenueData.previousPeriodRevenueByDay || []} // Pass comparison data
+                    comparisonEnabled={comparisonEnabled} // Pass state
+                    onToggleComparison={handleToggleComparison} // Pass handler
+                  />
                 </Box>
               </BlockStack>
             </Card>
@@ -364,9 +389,10 @@ function IndexContent() {
               <Link to="/app/analytics/segments" style={{width: '100%'}}>
                 <Button fullWidth>Manage Customer Segments</Button>
               </Link>
-              <Link to="/app/analytics/forecast" style={{width: '100%'}}>
-                <Button fullWidth>View Revenue Forecast</Button>
-              </Link>
+              {/* Changed to programmatic navigation for testing - keeping as is for now */}
+              <Button fullWidth onClick={() => navigate("/app/analytics/forecast")}>
+                View Revenue Forecast
+              </Button>
             </InlineGrid>
           </BlockStack>
         </Card>
