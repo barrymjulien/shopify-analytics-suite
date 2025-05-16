@@ -1,5 +1,5 @@
 import { json, redirect } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useLoaderData, Link } from "@remix-run/react";
 import ErrorBoundary from "../components/ErrorBoundary";
 import {
   Page,
@@ -20,7 +20,7 @@ import { AnalyticsService } from "../services/analytics.server";
 import { checkSubscription } from "../services/billing.server";
 import { getOnboardingState } from "../services/onboarding.server";
 import { MetricCard } from "../components/MetricCard";
-import { RevenueChart } from "../components/RevenueChart";
+import { RevenueTrendChart } from "../components/RevenueTrendChart";
 import { CustomerSegments } from "../components/CustomerSegments";
 
 import { format, subDays } from 'date-fns';
@@ -298,7 +298,7 @@ function IndexContent() {
                   Revenue Trend
                 </Text>
                 <Box padding="400">
-                  <RevenueChart data={revenueData.revenueByDay} />
+                  <RevenueTrendChart data={revenueData.revenueByDay} />
                 </Box>
               </BlockStack>
             </Card>
@@ -358,15 +358,15 @@ function IndexContent() {
               Quick Actions
             </Text>
             <InlineGrid columns={{ xs: 1, sm: 2, md: 3 }} gap="400">
-              <Button url="/app/analytics/export" fullWidth>
-                Export Analytics Report
-              </Button>
-              <Button url="/app/analytics/segments" fullWidth>
-                Manage Customer Segments
-              </Button>
-              <Button url="/app/analytics/forecast" fullWidth>
-                View Revenue Forecast
-              </Button>
+              <Link to="/app/analytics/export" style={{width: '100%'}}>
+                <Button fullWidth>Export Analytics Report</Button>
+              </Link>
+              <Link to="/app/analytics/segments" style={{width: '100%'}}>
+                <Button fullWidth>Manage Customer Segments</Button>
+              </Link>
+              <Link to="/app/analytics/forecast" style={{width: '100%'}}>
+                <Button fullWidth>View Revenue Forecast</Button>
+              </Link>
             </InlineGrid>
           </BlockStack>
         </Card>
