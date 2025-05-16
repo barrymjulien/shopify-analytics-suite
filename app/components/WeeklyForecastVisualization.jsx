@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import polarisPkg from "@shopify/polaris"; // Import the whole package once
 import ErrorBoundary from "./ErrorBoundary"; // Group all import statements
+import styles from '../styles/charts.module.css';
 
 // Destructure after all import statements
 const {
@@ -320,10 +321,10 @@ function WeeklyForecastVisualizationContent({
           </InlineStack>
         </InlineStack>
         
-        <div style={{ width: '100%', height: '300px', position: 'relative' }}>
+        <div className={styles.chartContainer} style={{ height: '300px' }}> {/* Keep specific height if needed */}
           <canvas
             ref={chartRef}
-            style={{ width: '100%', height: '100%' }}
+            className={styles.canvasElement}
           />
         </div>
       </BlockStack>

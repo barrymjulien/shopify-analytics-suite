@@ -1,5 +1,10 @@
-import { Card, Text, BlockStack, Box } from "@shopify/polaris";
+import { Card, Text, BlockStack, Box, Icon } from "@shopify/polaris";
 import ErrorBoundary from "./ErrorBoundary";
+import { ArrowUpIcon, ArrowDownIcon } from "../lib/icons"; // Use icons from app/lib/icons.jsx
+// Assuming formatters.js is in utils, and MetricCard might use formatCurrency or calculatePercentChange
+// If not directly used here, this import might be for other components.
+// For now, let's assume it's not directly needed in MetricCard based on current content.
+// import { formatCurrency, calculatePercentChange } from "../utils/formatters"; 
 
 function MetricCardContent({ title, value, trend, subtitle }) {
   // Handle case when trend is 0 (flat) or undefined
@@ -29,7 +34,8 @@ function MetricCardContent({ title, value, trend, subtitle }) {
               variant="bodySm"
               tone={isFlat ? 'subdued' : (isPositive ? 'success' : 'critical')}
             >
-              {isFlat ? '→' : (isPositive ? '↑' : '↓')} {Math.abs(trend)}%
+              <Icon source={isFlat ? undefined : (isPositive ? ArrowUpIcon : ArrowDownIcon)} />
+              {isFlat ? 'No change' : `${Math.abs(trend)}%`}
             </Text>
           </Box>
         )}

@@ -9,6 +9,7 @@ import {
   Button
 } from "@shopify/polaris";
 import ErrorBoundary from "./ErrorBoundary";
+import styles from '../styles/charts.module.css';
 
 function RevenueTrendChartContent({ 
   data,
@@ -242,10 +243,10 @@ function RevenueTrendChartContent({
         </InlineStack>
       )}
       
-      <div style={{ width: '100%', height: '250px', position: 'relative' }}>
+      <div className={styles.chartContainer}>
         <canvas 
           ref={chartRef} 
-          style={{ width: '100%', height: '100%' }} // Canvas display size fills the div
+          className={styles.canvasElement}
         />
       </div>
       

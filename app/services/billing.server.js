@@ -1,6 +1,7 @@
 // app/services/billing.server.js
 import { authenticate } from "../shopify.server";
 import { GraphqlClient } from '@shopify/shopify-api';
+import { billingLogger } from "./loggerService";
 
 /**
  * Subscription plan definitions
@@ -40,7 +41,7 @@ export const SUBSCRIPTION_PLANS = {
  */
 export async function checkSubscription(admin) { // Changed parameter name from session to admin
   if (!admin || !admin.graphql) { // Check for admin object and its graphql property
-    console.error("checkSubscription: Invalid admin object or missing graphql client.", { 
+    billingLogger.error("checkSubscription: Invalid admin object or missing graphql client.", null, { 
       hasAdmin: !!admin, 
       hasGraphql: !!admin?.graphql 
     });
@@ -85,7 +86,7 @@ export async function checkSubscription(admin) { // Changed parameter name from 
     
     return { hasSubscription: false };
   } catch (error) {
-    console.error("Failed to check subscription status:", error);
+    billingLogger.error("Failed to check subscription status", error);
     // Return a default response instead of throwing
     return { hasSubscription: false, error: error.message };
   }

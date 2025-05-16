@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Text } from "@shopify/polaris";
 import ErrorBoundary from "./ErrorBoundary";
+import styles from '../styles/charts.module.css';
 
 function RevenueChartContent({ data }) {
   const chartRef = useRef(null);
@@ -74,17 +75,17 @@ function RevenueChartContent({ data }) {
   
   if (!data || data.length === 0) {
     return (
-      <div style={{ height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className={styles.emptyState}>
         <Text tone="subdued">No data available</Text>
       </div>
     );
   }
   
   return (
-    <div style={{ width: '100%', height: '200px' }}>
+    <div className={styles.chartContainer} style={{ height: '200px' }}> {/* Keep specific height if needed */}
       <canvas 
         ref={chartRef} 
-        style={{ width: '100%', height: '100%' }}
+        className={styles.canvasElement}
       />
     </div>
   );

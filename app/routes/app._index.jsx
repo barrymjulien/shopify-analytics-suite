@@ -10,6 +10,7 @@ import {
   BlockStack,
   Box,
   InlineGrid,
+  InlineStack,
   Button,
   Badge,
   DataTable,
@@ -24,36 +25,47 @@ import { MetricCard } from "../components/MetricCard";
 // Replace the import for RevenueChart with:
 import { RevenueTrendChart } from "../components/RevenueTrendChart";
 import { CustomerSegments } from "../components/CustomerSegments";
-
-import { format, subDays } from 'date-fns';
+import { DateSelector } from '../components/DateSelector';
+import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { analyticsLogger } from "../services/loggerService";
+import { handleApiError } from "../utils/errorHandling";
+import { formatCurrency } from "../utils/formatters";
 
 export const loader = async ({ request }) => {
   try {
     const { admin, session } = await authenticate.admin(request);
     const { shop, accessToken } = session;
+
+    // Get URL parameters for date range
+    const url = new URL(request.url);
+    const startDateParam = url.searchParams.get("startDate");
+    const endDateParam = url.searchParams.get("endDate");
+
+    // Default to 30 days if no dates provided
+    const endDate = endDateParam ? new Date(endDateParam) : new Date();
+    const startDate = startDateParam ? new Date(startDateParam) : subDays(endDate, 30);
     
-    console.log("Session shop:", shop);
-    console.log("Session token available:", !!accessToken);
+    analyticsLogger.debug("Session information", { shop, hasAccessToken: !!accessToken });
     
     // Load initial data in parallel to reduce wait time
     const [onboarding, subscription] = await Promise.all([
       // Check onboarding status
       getOnboardingState(shop).catch(error => {
-        console.error("Critical error fetching onboarding state:", error);
+        analyticsLogger.error("Critical error fetching onboarding state:", error, { shop });
         return { completed: false, currentStep: "welcome" };
       }),
       
       // Check subscription status
       // Pass the admin object which contains an authenticated graphql client
       checkSubscription(admin).catch(error => { 
-        console.error("Error checking subscription:", error);
+        analyticsLogger.error("Error checking subscription:", error, { shop });
         // It seems the original code intended to catch this and return a default.
         // The error message from terminal indicates this catch IS working.
         return { hasSubscription: true, plan: "Development" }; 
       })
     ]);
     
-    console.log("Onboarding state:", JSON.stringify(onboarding));
+    analyticsLogger.info("Onboarding state:", { shop, onboardingState: JSON.stringify(onboarding) });
     
     // For development, give option to skip onboarding
     if (!onboarding.completed) {
@@ -133,11 +145,11 @@ export const loader = async ({ request }) => {
         
         // If we have both cached values, return them immediately
         if (cachedRevenue && cachedClv) {
-          console.log('Dashboard rendered from cache');
+          analyticsLogger.info('Dashboard rendered from cache', { shop });
           
           // Schedule background cleanup of expired caches
           analytics.cleanupExpiredCaches().catch(err => 
-            console.error('Cache cleanup error:', err)
+            analyticsLogger.error('Cache cleanup error:', err, { shop })
           );
           
           return json({
@@ -160,7 +172,7 @@ export const loader = async ({ request }) => {
         
         // Prefetch other commonly used caches in the background
         analytics.prefetchCommonCaches().catch(err => 
-          console.error('Prefetch error:', err)
+          analyticsLogger.error('Prefetch error:', err, { shop })
         );
         
         return json({
@@ -187,22 +199,15 @@ export const loader = async ({ request }) => {
         });
       }
     } catch (error) {
-      console.error('Analytics error:', error);
+    analyticsLogger.error('Analytics error:', error, { shop });
       // Return dummy data with a warning
-      return json({
-        revenueData: dummyRevenueData,
-        clvData: dummyClvData,
-        subscription: { hasSubscription: true, plan: "Development" },
-        error: 'Using dummy data: ' + error.message
-      });
+      return json(handleApiError(error, "dashboard.loader.analytics", { shop }));
     }
   } catch (error) {
-    console.error("Loader error:", error);
+    // shop is not in scope here, so we can't log it.
+    analyticsLogger.error("Loader error:", error);
     // Return a structured error response
-    return json({
-      error: "Failed to load the application. Please try again.",
-      technicalError: error.message
-    });
+    return json(handleApiError(error, "dashboard.loader", {}));
   }
 };
 
@@ -210,6 +215,10 @@ function IndexContent() {
   const { revenueData, clvData, error } = useLoaderData();
   const navigate = useNavigate(); // For programmatic navigation if needed
 
+  const [selectedDateRange, setSelectedDateRange] = useState({
+    start: new Date(new Date().setDate(new Date().getDate() - 30)),
+    end: new Date(),
+  });
   const [comparisonEnabled, setComparisonEnabled] = useState(false);
 
   const handleToggleComparison = () => {
@@ -253,14 +262,6 @@ function IndexContent() {
       </Page>
     );
   }
-  
-  // Format currency
-  const formatCurrency = (value) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
-    }).format(value);
-  };
   
   // Prepare top customers table
   const topCustomersRows = clvData.customers
@@ -314,15 +315,22 @@ function IndexContent() {
           <Layout.Section>
             <Card>
               <BlockStack gap="400">
-                <Text variant="headingMd" as="h2">
-                  Revenue Trend
-                </Text>
+                <InlineStack align="space-between">
+                  <Text variant="headingMd" as="h2">
+                    Revenue Trend
+                  </Text>
+                  <DateSelector
+                    onDateChange={(dates) => setSelectedDateRange(dates)}
+                    initialStartDate={selectedDateRange.start}
+                    initialEndDate={selectedDateRange.end}
+                  />
+                </InlineStack>
                 <Box padding="400">
-                  <RevenueTrendChart 
-                    data={revenueData.revenueByDay} 
-                    comparisonData={revenueData.previousPeriodRevenueByDay || []} // Pass comparison data
-                    comparisonEnabled={comparisonEnabled} // Pass state
-                    onToggleComparison={handleToggleComparison} // Pass handler
+                  <RevenueTrendChart
+                    data={revenueData.revenueByDay}
+                    comparisonData={revenueData.previousPeriodRevenueByDay || []}
+                    comparisonEnabled={comparisonEnabled}
+                    onToggleComparison={handleToggleComparison}
                   />
                 </Box>
               </BlockStack>
@@ -383,16 +391,16 @@ function IndexContent() {
               Quick Actions
             </Text>
             <InlineGrid columns={{ xs: 1, sm: 2, md: 3 }} gap="400">
+              {/* Use direct Link components instead of mixing Link and Button for consistency */}
               <Link to="/app/analytics/export" style={{width: '100%'}}>
                 <Button fullWidth>Export Analytics Report</Button>
               </Link>
               <Link to="/app/analytics/segments" style={{width: '100%'}}>
                 <Button fullWidth>Manage Customer Segments</Button>
               </Link>
-              {/* Changed to programmatic navigation for testing - keeping as is for now */}
-              <Button fullWidth onClick={() => navigate("/app/analytics/forecast")}>
-                View Revenue Forecast
-              </Button>
+              <Link to="/app/analytics/forecast" style={{width: '100%'}}>
+                <Button fullWidth>View Revenue Forecast</Button>
+              </Link>
             </InlineGrid>
           </BlockStack>
         </Card>

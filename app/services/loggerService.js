@@ -223,5 +223,7 @@ export const uiLogger = new LoggerService({ context: 'ui' });
 // TODO: Implement a proper EventLogger with specific tracking methods if needed.
 export const eventLogger = uiLogger; 
 
+export const billingLogger = new LoggerService({ context: 'billing' });
+
 // Default logger for general use
 export default new LoggerService();
