@@ -21,7 +21,7 @@ import {
   Tooltip,
   InlineStack
 } from "@shopify/polaris";
-import { ArrowLeftIcon, EditIcon, DeleteIcon, PlusIcon, QuestionIcon } from '../../lib/icons';
+import { ArrowLeftIcon, EditIcon, DeleteIcon, PlusIcon, QuestionIcon } from '../lib/icons';
 import { authenticate } from "../../shopify.server";
 
 export async function loader({ request }) {

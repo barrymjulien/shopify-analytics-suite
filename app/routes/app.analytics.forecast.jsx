@@ -17,7 +17,7 @@ import {
   Icon,
   InlineStack
 } from "@shopify/polaris";
-import { ArrowLeftIcon, QuestionIcon } from '../../lib/icons';
+import { ArrowLeftIcon, QuestionIcon } from '../lib/icons';
 import { authenticate } from "../../shopify.server";
 import { addDays, addMonths, format, startOfMonth, endOfMonth } from 'date-fns';
 
