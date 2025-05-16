@@ -1,6 +1,7 @@
 import { Card, Text, BlockStack, Box } from "@shopify/polaris";
+import ErrorBoundary from "./ErrorBoundary";
 
-export function MetricCard({ title, value, trend, subtitle }) {
+function MetricCardContent({ title, value, trend, subtitle }) {
   // Handle case when trend is 0 (flat) or undefined
   const hasValidTrend = trend !== undefined && trend !== null;
   const isPositive = hasValidTrend && trend > 0;
@@ -34,5 +35,13 @@ export function MetricCard({ title, value, trend, subtitle }) {
         )}
       </BlockStack>
     </Card>
+  );
+}
+
+export function MetricCard(props) {
+  return (
+    <ErrorBoundary componentName="Metric Card">
+      <MetricCardContent {...props} />
+    </ErrorBoundary>
   );
 }

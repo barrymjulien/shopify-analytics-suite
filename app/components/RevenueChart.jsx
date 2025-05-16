@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Text } from "@shopify/polaris";
+import ErrorBoundary from "./ErrorBoundary";
 
-export function RevenueChart({ data }) {
+function RevenueChartContent({ data }) {
   const chartRef = useRef(null);
   
   useEffect(() => {
@@ -86,5 +87,13 @@ export function RevenueChart({ data }) {
         style={{ width: '100%', height: '100%' }}
       />
     </div>
+  );
+}
+
+export function RevenueChart(props) {
+  return (
+    <ErrorBoundary componentName="Revenue Chart">
+      <RevenueChartContent {...props} />
+    </ErrorBoundary>
   );
 }

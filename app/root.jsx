@@ -5,8 +5,9 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react";
+import ErrorBoundary from "./components/ErrorBoundary";
 
-export default function App() {
+function AppContent() {
   return (
     <html>
       <head>
@@ -26,5 +27,13 @@ export default function App() {
         <Scripts />
       </body>
     </html>
+  );
+}
+
+export default function App() {
+  return (
+    <ErrorBoundary componentName="Application Root">
+      <AppContent />
+    </ErrorBoundary>
   );
 }

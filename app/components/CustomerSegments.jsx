@@ -1,6 +1,7 @@
 import { ProgressBar, BlockStack, InlineStack, Text } from "@shopify/polaris";
+import ErrorBoundary from "./ErrorBoundary";
 
-export function CustomerSegments({ segments }) {
+function CustomerSegmentsContent({ segments }) {
   if (!segments || segments.length === 0) {
     return (
       <Text tone="subdued">No segment data available</Text>
@@ -52,5 +53,13 @@ export function CustomerSegments({ segments }) {
         );
       })}
     </BlockStack>
+  );
+}
+
+export function CustomerSegments(props) {
+  return (
+    <ErrorBoundary componentName="Customer Segments">
+      <CustomerSegmentsContent {...props} />
+    </ErrorBoundary>
   );
 }

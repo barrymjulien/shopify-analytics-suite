@@ -97,17 +97,71 @@ export const loader = async ({ request }) => {
       // For production, use actual data
       if (process.env.NODE_ENV === "production") {
         const analytics = new AnalyticsService(shop, accessToken);
-        // Fetch both revenue overview and CLV data
+        
+        // First try to get data from cache with stale-while-revalidate
+        // This allows us to quickly return results even if the cache is stale
+        const maxStaleness = 600; // Allow up to 10 minutes stale data for instant renders
+        
+        // Advanced cache options
+        const cacheOptions = {
+          maxStaleness: maxStaleness, 
+          ignoreErrors: true
+        };
+        
+        // Check cache first for both data types
+        let cachedRevenue = await analytics.getCache("revenue_overview_30", cacheOptions);
+        let cachedClv = await analytics.getCache("clv_all_customers", cacheOptions);
+        
+        // Extract data from enhanced cache format (with metadata)
+        if (cachedRevenue && cachedRevenue.data) {
+          cachedRevenue = cachedRevenue.data;
+        }
+        
+        if (cachedClv && cachedClv.data) {
+          cachedClv = cachedClv.data;
+        }
+        
+        // If we have both cached values, return them immediately
+        if (cachedRevenue && cachedClv) {
+          console.log('Dashboard rendered from cache');
+          
+          // Schedule background cleanup of expired caches
+          analytics.cleanupExpiredCaches().catch(err => 
+            console.error('Cache cleanup error:', err)
+          );
+          
+          return json({
+            revenueData: cachedRevenue,
+            clvData: cachedClv,
+            subscription,
+            error: null,
+            cacheInfo: {
+              fromCache: true,
+              cacheTime: new Date().toISOString()
+            }
+          });
+        }
+        
+        // If cache miss for any data, fetch both in parallel
         const [revenueData, clvData] = await Promise.all([
           analytics.getRevenueOverview(30),
           analytics.calculateCLV()
         ]);
         
+        // Prefetch other commonly used caches in the background
+        analytics.prefetchCommonCaches().catch(err => 
+          console.error('Prefetch error:', err)
+        );
+        
         return json({
           revenueData,
           clvData,
           subscription,
-          error: null
+          error: null,
+          cacheInfo: {
+            fromCache: false,
+            cacheTime: new Date().toISOString()
+          }
         });
       } else {
         // Use dummy data for development
@@ -115,7 +169,11 @@ export const loader = async ({ request }) => {
           revenueData: dummyRevenueData,
           clvData: dummyClvData,
           subscription: { hasSubscription: true, plan: "Development" },
-          error: null
+          error: null,
+          cacheInfo: {
+            fromCache: false,
+            isDummy: true
+          }
         });
       }
     } catch (error) {
