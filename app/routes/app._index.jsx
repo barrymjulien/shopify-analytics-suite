@@ -20,7 +20,7 @@ import { AnalyticsService } from "../services/analytics.server";
 import { checkSubscription } from "../services/billing.server";
 import { getOnboardingState } from "../services/onboarding.server";
 import { MetricCard } from "../components/MetricCard";
-import { RevenueTrendChart } from "../components/RevenueTrendChart";
+import { RevenueChart } from "../components/RevenueChart";
 import { CustomerSegments } from "../components/CustomerSegments";
 
 import { format, subDays } from 'date-fns';
@@ -298,7 +298,7 @@ function IndexContent() {
                   Revenue Trend
                 </Text>
                 <Box padding="400">
-                  <RevenueTrendChart data={revenueData.revenueByDay} />
+                  <RevenueChart data={revenueData.revenueByDay} />
                 </Box>
               </BlockStack>
             </Card>
