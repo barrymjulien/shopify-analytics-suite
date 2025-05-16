@@ -18,7 +18,7 @@ import {
   Frame
 } from "@shopify/polaris";
 import { authenticate } from "../../shopify.server";
-import { ArrowLeftIcon } from '@shopify/polaris-icons';
+import { ArrowLeftIcon } from '../../utils/icons';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 
 export async function loader({ request }) {
