@@ -3,7 +3,7 @@
 client_id = "6d5d916b270d881f6b901636c675dacb"
 name = "analytics-suite"
 handle = "analytics-suite"
-application_url = "https://sized-genome-powerseller-bikes.trycloudflare.com"
+application_url = "https://guyana-symposium-relationships-sampling.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://sized-genome-powerseller-bikes.trycloudflare.com/auth/callback",
-  "https://sized-genome-powerseller-bikes.trycloudflare.com/auth/shopify/callback",
-  "https://sized-genome-powerseller-bikes.trycloudflare.com/api/auth/callback"
+  "https://guyana-symposium-relationships-sampling.trycloudflare.com/auth/callback",
+  "https://guyana-symposium-relationships-sampling.trycloudflare.com/auth/shopify/callback",
+  "https://guyana-symposium-relationships-sampling.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]

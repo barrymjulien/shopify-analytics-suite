@@ -15,21 +15,33 @@ export const ONBOARDING_STEPS = [
  * Get the current onboarding state for a shop
  */
 export async function getOnboardingState(shop) {
+  console.log("Getting onboarding state for shop:", shop);
+  
   try {
     // Find or create onboarding state
     let onboarding = await prisma.onboardingState.findUnique({
       where: { shop }
     });
     
+    console.log("Existing onboarding state:", onboarding);
+    
     if (!onboarding) {
-      onboarding = await prisma.onboardingState.create({
-        data: { 
-          shop,
-          currentStep: "welcome",
-          completed: false,
-          stepsData: "{}"
-        }
-      });
+      console.log("Creating new onboarding state for shop:", shop);
+      
+      try {
+        onboarding = await prisma.onboardingState.create({
+          data: { 
+            shop,
+            currentStep: "welcome",
+            completed: false,
+            stepsData: "{}"
+          }
+        });
+        console.log("New onboarding state created:", onboarding);
+      } catch (createError) {
+        console.error("Failed to create onboarding state:", createError);
+        throw createError;
+      }
     }
     
     return {
