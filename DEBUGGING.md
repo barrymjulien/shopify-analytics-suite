@@ -1,71 +1,57 @@
-# Shopify Analytics Suite Debugging Guide
+# Debugging Shopify Analytics Suite
 
-This guide helps you troubleshoot common issues in the Shopify Analytics Suite app, specifically addressing authentication errors and database problems.
+## Major Issues Addressed
 
-## Common Issues and Solutions
+### 1. Authentication and Login Loop
+- Fixed by implementing a dev-mode route that bypasses authentication
+- Created reset scripts to clear database state and restart cleanly
 
-### Authentication Error
-If you see "accounts.shopify.com refused to connect" or are stuck in a login loop:
+### 2. Database Schema Issues
+- Added proper database migrations for analytics models
+- Implemented onboarding state tracking
+- Fixed billing implementation
 
-1. **Reset the app state** - Use the reset script to clear corrupted data:
-   ```
-   node reset-app.js
-   ```
+### 3. Icon Import Problems
+The application was having issues with icon imports after upgrading Polaris. We tried several approaches:
 
-2. **Use Developer Mode** - A special route has been added to bypass authentication flows:
-   - After starting the app, visit: `/app/dev-mode`
-   - Click "Enable Developer Mode" to create a dummy onboarding state and bypass subscription checks
+#### Attempted Solutions:
+1. **Direct import from @shopify/polaris-icons**
+   - Failed due to export naming inconsistencies
+   - Error: `The requested module '@shopify/polaris-icons' does not provide an export named 'PlusMinor'`
 
-### Database Schema Issues
+2. **Custom SVG components**
+   - Created inline SVG components for each icon
+   - Centralized in `app/lib/icons.jsx`
+   - Works but adds more code to maintain
 
-The app includes routes to help diagnose and fix database problems:
+3. **React Icons library (Final Solution)**
+   - Installed react-icons: `npm install react-icons`
+   - Using Feather icons set (similar to Shopify's style): `import { FiArrowLeft } from 'react-icons/fi'`
+   - Centralized in `app/lib/icons.jsx` with consistent naming
 
-1. **Debug Page** - Visit `/app/debug` to:
-   - View your session information
-   - See your onboarding state
-   - Reset or complete onboarding with a single click
-   - View database table counts
+### 4. Prisma Generation Issues
+- Experiencing `EPERM: operation not permitted` errors when running Prisma generate
+- Workaround: Use `--skip-generate` flag with Prisma commands
+- Long-term solution: Ensure no processes are locking the DLL file
 
-2. **Manual Database Reset** - If needed, you can manually run:
-   ```
-   # Delete the SQLite database file
-   del prisma\dev.sqlite
-   
-   # Regenerate Prisma client and run migrations
-   npx prisma generate
-   npx prisma migrate reset --force
-   ```
+## Quick Action Pages
+Successfully implemented three analytics feature pages:
+- Export Analytics Report
+- Customer Segments Management
+- Revenue Forecast 
 
-## Development Improvements
+All pages have been properly linked from the dashboard.
 
-We've made several improvements to make development easier:
+## Running the App in Dev Mode
+```
+npm run build
+npm run deploy
+npm run dev
+```
 
-1. **Error Handling** - Better error handling in database connections, onboarding, and authentication logic
+If you encounter Prisma errors, try:
+```
+npx prisma migrate reset --skip-generate --force
+```
 
-2. **Dummy Data** - The app now provides dummy data in development mode, so you can work on the frontend without needing real Shopify data
-
-3. **Fix for Billing Implementation** - Corrected the GraphQL mutation for creating subscriptions
-
-## Monitoring and Troubleshooting
-
-If you encounter issues:
-
-1. **Check the Debug Page** - Visit `/app/debug` first to diagnose problems
-
-2. **Terminal Output** - The app now includes more detailed logging messages to help identify where issues occur
-
-3. **Reset Script** - Use `node reset-app.js` as a first troubleshooting step for most problems
-
-## Moving to Production
-
-For production deployments:
-
-1. Make sure to test with real data by setting `process.env.NODE_ENV` to "production"
-2. Remove developer routes or add proper authentication checks before deploying
-3. Ensure your subscription plans are properly configured
-
-## Additional Notes
-
-- The app now falls back to dummy data if there are API errors, making it more resilient
-- We've fixed database import issues in webhook routes
-- Added try/catch blocks in critical areas to prevent complete app failures
+Then visit `/app/dev-mode` to bypass authentication flows during development.

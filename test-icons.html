@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .icon-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+        .icon-card svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 10px;
+        }
+        h1 { margin-bottom: 30px; }
+        h2 { margin-top: 40px; }
+    </style>
+</head>
+<body>
+    <h1>Icon Test Page</h1>
+    
+    <h2>React Icons (FI Icons)</h2>
+    <div class="icon-grid">
+        <div class="icon-card">
+            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+            <p>ArrowLeftIcon (FiArrowLeft)</p>
+        </div>
+        
+        <div class="icon-card">
+            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <p>QuestionIcon (FiHelpCircle)</p>
+        </div>
+        
+        <div class="icon-card">
+            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 20h9"></path>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+            </svg>
+            <p>EditIcon (FiEdit)</p>
+        </div>
+        
+        <div class="icon-card">
+            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            <p>DeleteIcon (FiTrash2)</p>
+        </div>
+        
+        <div class="icon-card">
+            <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <p>PlusIcon (FiPlus)</p>
+        </div>
+    </div>
+
+    <h2>Usage in React</h2>
+    <pre>
+    import { 
+      FiArrowLeft, 
+      FiHelpCircle, 
+      FiEdit, 
+      FiTrash2, 
+      FiPlus 
+    } from 'react-icons/fi';
+
+    // Export renamed icons for consistent usage in our components
+    export const ArrowLeftIcon = FiArrowLeft;
+    export const QuestionIcon = FiHelpCircle;
+    export const EditIcon = FiEdit;
+    export const DeleteIcon = FiTrash2;
+    export const PlusIcon = FiPlus;
+    </pre>
+</body>
+</html>

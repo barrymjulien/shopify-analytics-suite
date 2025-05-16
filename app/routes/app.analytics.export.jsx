@@ -18,7 +18,7 @@ import {
   Frame
 } from "@shopify/polaris";
 import { authenticate } from "../../shopify.server";
-import { ArrowLeftIcon } from '../lib/icons';
+import { FiArrowLeft } from 'react-icons/fi';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 
 export async function loader({ request }) {
@@ -133,7 +133,7 @@ export default function ExportAnalyticsReport() {
   return (
     <Page
       title="Export Analytics Report"
-      backAction={{ content: 'Back', icon: ArrowLeftIcon, onAction: () => navigate('/app') }}
+      backAction={{ content: 'Back', icon: FiArrowLeft, onAction: () => navigate('/app') }}
     >
       <BlockStack gap="500">
         <Card>

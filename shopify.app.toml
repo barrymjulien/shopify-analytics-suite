@@ -3,7 +3,7 @@
 client_id = "6d5d916b270d881f6b901636c675dacb"
 name = "analytics-suite"
 handle = "analytics-suite"
-application_url = "https://apply-millions-lift-toner.trycloudflare.com"
+application_url = "https://graphic-taiwan-ru-try.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://apply-millions-lift-toner.trycloudflare.com/auth/callback",
-  "https://apply-millions-lift-toner.trycloudflare.com/auth/shopify/callback",
-  "https://apply-millions-lift-toner.trycloudflare.com/api/auth/callback"
+  "https://graphic-taiwan-ru-try.trycloudflare.com/auth/callback",
+  "https://graphic-taiwan-ru-try.trycloudflare.com/auth/shopify/callback",
+  "https://graphic-taiwan-ru-try.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
