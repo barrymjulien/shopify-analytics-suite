@@ -3,7 +3,7 @@
 client_id = "6d5d916b270d881f6b901636c675dacb"
 name = "analytics-suite"
 handle = "analytics-suite"
-application_url = "https://game-town-ruby-sheer.trycloudflare.com"
+application_url = "https://grace-object-nuclear-largest.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,9 +27,9 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://game-town-ruby-sheer.trycloudflare.com/auth/callback",
-  "https://game-town-ruby-sheer.trycloudflare.com/auth/shopify/callback",
-  "https://game-town-ruby-sheer.trycloudflare.com/api/auth/callback"
+  "https://grace-object-nuclear-largest.trycloudflare.com/auth/callback",
+  "https://grace-object-nuclear-largest.trycloudflare.com/auth/shopify/callback",
+  "https://grace-object-nuclear-largest.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
