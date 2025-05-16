@@ -21,7 +21,7 @@ import {
   Tooltip,
   InlineStack
 } from "@shopify/polaris";
-import { ArrowLeftMinor, EditMinor, DeleteMinor, PlusMinor, QuestionMarkMinor } from '@shopify/polaris-icons';
+import { ArrowLeftIcon, EditIcon, DeleteIcon, PlusIcon, QuestionIcon } from '../../lib/icons';
 import { authenticate } from "../../shopify.server";
 
 export async function loader({ request }) {
@@ -199,14 +199,14 @@ export default function ManageCustomerSegments() {
     </Text>,
     <InlineStack key={`actions-${segment.id}`} align="end" gap="200">
       <Button 
-        icon={EditMinor} 
+        icon={EditIcon} 
         onClick={() => handleEditSegment(segment)}
         size="slim"
         plain
         accessibilityLabel={`Edit ${segment.name} segment`}
       />
       <Button 
-        icon={DeleteMinor} 
+        icon={DeleteIcon} 
         tone="critical"
         onClick={() => handleDeleteSegment(segment)}
         size="slim"
@@ -326,10 +326,10 @@ export default function ManageCustomerSegments() {
   return (
     <Page
       title="Customer Segments"
-      backAction={{ content: 'Back', icon: ArrowLeftMinor, onAction: () => navigate('/app') }}
+      backAction={{ content: 'Back', icon: ArrowLeftIcon, onAction: () => navigate('/app') }}
       primaryAction={{ 
         content: 'Create New Segment', 
-        icon: PlusMinor,
+        icon: PlusIcon,
         onAction: handleNewSegment
       }}
     >

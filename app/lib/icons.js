@@ -1,14 +1,14 @@
 import {
   ArrowLeftMinor,
-  QuestionMarkMinor,
-  EditMinor,
-  DeleteMinor,
+  QuestionMarkMajor,
+  EditMajor,
+  DeleteMajor,
   PlusMinor
 } from '@shopify/polaris-icons';
 
 // Export renamed icons for consistent usage in our components
 export const ArrowLeftIcon = ArrowLeftMinor;
-export const QuestionIcon = QuestionMarkMinor;
-export const EditIcon = EditMinor;
-export const DeleteIcon = DeleteMinor;
+export const QuestionIcon = QuestionMarkMajor;
+export const EditIcon = EditMajor;
+export const DeleteIcon = DeleteMajor;
 export const PlusIcon = PlusMinor;

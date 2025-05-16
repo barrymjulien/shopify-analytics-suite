@@ -17,7 +17,7 @@ import {
   Icon,
   InlineStack
 } from "@shopify/polaris";
-import { ArrowLeftMinor, QuestionMarkMinor } from '@shopify/polaris-icons';
+import { ArrowLeftIcon, QuestionIcon } from '../../lib/icons';
 import { authenticate } from "../../shopify.server";
 import { addDays, addMonths, format, startOfMonth, endOfMonth } from 'date-fns';
 
@@ -232,7 +232,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Historical growth rate</Text>
                   <Tooltip content="Based on your store's growth over the past 12 months">
-                    <Icon source={QuestionMarkMinor} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">+8%</Text>
@@ -242,7 +242,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Seasonal trends</Text>
                   <Tooltip content="Based on your industry's seasonal patterns">
-                    <Icon source={QuestionMarkMinor} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">Q4 boost expected</Text>
@@ -252,7 +252,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Customer retention rate</Text>
                   <Tooltip content="Percentage of customers who make repeat purchases">
-                    <Icon source={QuestionMarkMinor} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">42%</Text>
@@ -262,7 +262,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Average order frequency</Text>
                   <Tooltip content="How often customers make repeat purchases">
-                    <Icon source={QuestionMarkMinor} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">68 days</Text>
@@ -272,7 +272,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Market trend adjustment</Text>
                   <Tooltip content="Based on industry benchmarks and trends">
-                    <Icon source={QuestionMarkMinor} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">+2%</Text>
@@ -394,7 +394,7 @@ export default function RevenueForecast() {
   return (
     <Page
       title="Revenue Forecast"
-      backAction={{ content: 'Back', icon: ArrowLeftMinor, onAction: () => navigate('/app') }}
+      backAction={{ content: 'Back', icon: ArrowLeftIcon, onAction: () => navigate('/app') }}
     >
       <BlockStack gap="500">
         <Card>
