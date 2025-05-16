@@ -14,6 +14,8 @@ echo "Making sure the routes are properly linked..."
 # - /app/analytics/export -> app/routes/app.analytics.export.jsx
 # - /app/analytics/segments -> app/routes/app.analytics.segments.jsx
 # - /app/analytics/forecast -> app/routes/app.analytics.forecast.jsx
+# 
+# Note: Using '~/lib/icons.js' for importing icons instead of the previous path
 
 echo "Starting the development server..."
 echo "After the server starts, navigate to your app dashboard and try the Quick Action buttons."
