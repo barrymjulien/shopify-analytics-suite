@@ -1,6 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Card, ButtonGroup, Button, Select, DatePicker, InlineStack, Tabs } from '@shopify/polaris';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+// Explicitly import each recharts component to ensure they're properly loaded
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  Legend, 
+  ResponsiveContainer 
+} from 'recharts';
 
 export function RevenueTrendChart({ data = [], title = "Revenue Trend" }) {
   const [selectedTab, setSelectedTab] = useState(0);
@@ -145,7 +155,7 @@ export function RevenueTrendChart({ data = [], title = "Revenue Trend" }) {
                 label={{ value: 'Revenue ($)', angle: -90, position: 'insideLeft' }}
                 tickFormatter={(value) => `$${value}`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              <RechartsTooltip content={<CustomTooltip />} />
               <Legend />
               <Line 
                 type="monotone" 
