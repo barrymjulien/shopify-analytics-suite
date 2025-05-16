@@ -23,45 +23,68 @@ import { RevenueChart } from "../components/RevenueChart";
 import { CustomerSegments } from "../components/CustomerSegments";
 
 export const loader = async ({ request }) => {
-  const { admin, session } = await authenticate.admin(request);
-  const { shop, accessToken } = session;
-  
-  // Check onboarding status
-  const onboarding = await getOnboardingState(shop);
-  
-  // If onboarding not completed, redirect to onboarding flow
-  if (!onboarding.completed) {
-    return redirect("/app/onboarding");
-  }
-  
-  // Check subscription after onboarding
-  const subscription = await checkSubscription(session);
-  if (!subscription.hasSubscription) {
-    return redirect("/app/pricing");
-  }
-  
-  const analytics = new AnalyticsService(shop, accessToken);
-  
   try {
-    // Fetch both revenue overview and CLV data
-    const [revenueData, clvData] = await Promise.all([
-      analytics.getRevenueOverview(30),
-      analytics.calculateCLV()
-    ]);
+    const { admin, session } = await authenticate.admin(request);
+    const { shop, accessToken } = session;
     
-    return json({
-      revenueData,
-      clvData,
-      subscription,
-      error: null
-    });
+    // Check onboarding status - add error handling
+    let onboarding;
+    try {
+      onboarding = await getOnboardingState(shop);
+    } catch (error) {
+      console.error("Error fetching onboarding state:", error);
+      // Create a default onboarding state if it doesn't exist
+      onboarding = { completed: false, currentStep: "welcome" };
+    }
+    
+    // If onboarding not completed, redirect to onboarding flow
+    if (!onboarding.completed) {
+      return redirect("/app/onboarding");
+    }
+    
+    // Check subscription after onboarding with error handling
+    let subscription;
+    try {
+      subscription = await checkSubscription(session);
+    } catch (error) {
+      console.error("Error checking subscription:", error);
+      subscription = { hasSubscription: false };
+    }
+    
+    if (!subscription.hasSubscription) {
+      return redirect("/app/pricing");
+    }
+    
+    const analytics = new AnalyticsService(shop, accessToken);
+    
+    try {
+      // Fetch both revenue overview and CLV data
+      const [revenueData, clvData] = await Promise.all([
+        analytics.getRevenueOverview(30),
+        analytics.calculateCLV()
+      ]);
+      
+      return json({
+        revenueData,
+        clvData,
+        subscription,
+        error: null
+      });
+    } catch (error) {
+      console.error('Analytics error:', error);
+      return json({
+        revenueData: null,
+        clvData: null,
+        subscription,
+        error: 'Failed to load analytics data'
+      });
+    }
   } catch (error) {
-    console.error('Analytics error:', error);
+    console.error("Loader error:", error);
+    // Return a structured error response
     return json({
-      revenueData: null,
-      clvData: null,
-      subscription,
-      error: 'Failed to load analytics data'
+      error: "Failed to load the application. Please try again.",
+      technicalError: error.message
     });
   }
 };

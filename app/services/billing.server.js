@@ -39,9 +39,9 @@ export const SUBSCRIPTION_PLANS = {
  * Check if the merchant has an active subscription
  */
 export async function checkSubscription(session) {
-  const client = new GraphqlClient({session});
-  
   try {
+    const client = new GraphqlClient({session});
+    
     // Check if the merchant has an active subscription
     const response = await client.query({
       data: `{
@@ -67,11 +67,13 @@ export async function checkSubscription(session) {
         };
       }
     }
+    
+    return { hasSubscription: false };
   } catch (error) {
     console.error("Failed to check subscription status:", error);
+    // Return a default response instead of throwing
+    return { hasSubscription: false, error: error.message };
   }
-  
-  return { hasSubscription: false };
 }
 
 /**
