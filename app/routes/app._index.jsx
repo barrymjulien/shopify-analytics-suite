@@ -22,7 +22,6 @@ import { AnalyticsService } from "../services/analytics.server";
 import { checkSubscription } from "../services/billing.server";
 import { getOnboardingState } from "../services/onboarding.server";
 import { MetricCard } from "../components/MetricCard";
-// Replace the import for RevenueChart with:
 import { RevenueTrendChart } from "../components/RevenueTrendChart";
 import { CustomerSegments as CustomerSegmentsComponent } from "../components/CustomerSegments";
 import { DateSelector } from '../components/DateSelector';
@@ -31,6 +30,15 @@ import { analyticsLogger } from "../services/loggerService";
 import { handleApiError } from "../utils/errorHandling";
 import { formatCurrency } from "../utils/formatters";
 
+export const headers = ({ loaderHeaders }) => {
+  return {
+    // Preserve any headers set by the loader
+    "Content-Security-Policy": loaderHeaders.get("Content-Security-Policy") || "",
+    "X-Frame-Options": loaderHeaders.get("X-Frame-Options") || "",
+    "X-Content-Type-Options": "nosniff",
+  };
+};
+
 // Then create a wrapper function after the imports:
 const CustomerSegments = ({ segments }) => <CustomerSegmentsComponent data={segments} />;
 
@@ -38,6 +46,15 @@ export const loader = async ({ request }) => {
   try {
     const { admin, session } = await authenticate.admin(request);
     const { shop, accessToken } = session;
+
+    // Create response headers
+    const responseHeaders = new Headers();
+    
+    // Set CSP headers
+    const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`;
+    responseHeaders.set("Content-Security-Policy", `frame-ancestors https://${shopDomain} https://admin.shopify.com`);
+    responseHeaders.set("X-Frame-Options", `ALLOW-FROM https://${shopDomain}`);
+    responseHeaders.set("X-Content-Type-Options", "nosniff");
 
     // Get URL parameters for date range
     const url = new URL(request.url);
@@ -71,7 +88,7 @@ export const loader = async ({ request }) => {
     
     // For development, give option to skip onboarding
     if (!onboarding.completed) {
-      return redirect("/app/onboarding");
+      return redirect("/app/onboarding", { headers: responseHeaders });
     }
     
     // Use dummy data for development
@@ -163,7 +180,7 @@ export const loader = async ({ request }) => {
               fromCache: true,
               cacheTime: new Date().toISOString()
             }
-          });
+          }, { headers: responseHeaders });
         }
         
         // If cache miss for any data, fetch both in parallel
@@ -186,7 +203,7 @@ export const loader = async ({ request }) => {
             fromCache: false,
             cacheTime: new Date().toISOString()
           }
-        });
+        }, { headers: responseHeaders });
       } else {
         // Use dummy data for development
         return json({
@@ -198,18 +215,24 @@ export const loader = async ({ request }) => {
             fromCache: false,
             isDummy: true
           }
-        });
+        }, { headers: responseHeaders });
       }
     } catch (error) {
     analyticsLogger.error('Analytics error:', error, { shop });
       // Return dummy data with a warning
-      return json(handleApiError(error, "dashboard.loader.analytics", { shop }));
+      return json(handleApiError(error, "dashboard.loader.analytics", { shop }), { headers: responseHeaders });
     }
   } catch (error) {
     // shop is not in scope here, so we can't log it.
     analyticsLogger.error("Loader error:", error);
+    
+    // Create fallback headers for error cases
+    const fallbackHeaders = new Headers();
+    fallbackHeaders.set("Content-Security-Policy", "frame-ancestors https://*.myshopify.com https://admin.shopify.com");
+    fallbackHeaders.set("X-Content-Type-Options", "nosniff");
+    
     // Return a structured error response
-    return json(handleApiError(error, "dashboard.loader", {}));
+    return json(handleApiError(error, "dashboard.loader", {}), { headers: fallbackHeaders });
   }
 };
 
