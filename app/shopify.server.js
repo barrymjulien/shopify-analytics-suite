@@ -16,10 +16,10 @@ const shopify = shopifyApp({
   authPathPrefix: "/auth",
   sessionStorage: new PrismaSessionStorage(prisma),
   distribution: AppDistribution.AppStore,
-future: {
-  // unstable_newEmbeddedAuthStrategy: true,
-  removeRest: true,
-},
+  future: {
+    // unstable_newEmbeddedAuthStrategy: true,
+    removeRest: true,
+  },
   ...(process.env.SHOP_CUSTOM_DOMAIN
     ? { customShopDomains: [process.env.SHOP_CUSTOM_DOMAIN] }
     : {}),
@@ -27,7 +27,51 @@ future: {
 
 export default shopify;
 export const apiVersion = ApiVersion.January25;
-export const addDocumentResponseHeaders = shopify.addDocumentResponseHeaders;
+
+// Enhanced addDocumentResponseHeaders that includes CSP headers
+export function addDocumentResponseHeaders(request, responseHeaders) {
+  // Call the original function first
+  shopify.addDocumentResponseHeaders(request, responseHeaders);
+  
+  // Extract shop domain from request URL or headers
+  const url = new URL(request.url);
+  let shop = url.searchParams.get("shop");
+  
+  // Also try to get shop from headers (for authenticated requests)
+  if (!shop) {
+    const authHeader = request.headers.get("authorization");
+    if (authHeader) {
+      // You might need to decode JWT or get shop from session
+      // For now, we'll use a fallback
+      shop = "*"; // Will be handled in fallback
+    }
+  }
+  
+  if (shop && shop !== "*") {
+    // Ensure shop domain has the correct format
+    const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`;
+    
+    // Set Content Security Policy for iframe protection
+    const cspValue = `frame-ancestors https://${shopDomain} https://admin.shopify.com`;
+    responseHeaders.set("Content-Security-Policy", cspValue);
+    
+    // Additional security headers for embedded apps
+    responseHeaders.set("X-Frame-Options", `ALLOW-FROM https://${shopDomain}`);
+    responseHeaders.set("X-Content-Type-Options", "nosniff");
+    responseHeaders.set("Referrer-Policy", "origin-when-cross-origin");
+    
+    console.log(`CSP set for shop: ${shopDomain}`);
+  } else {
+    // Fallback CSP for when shop is not available
+    const fallbackCSP = "frame-ancestors https://*.myshopify.com https://admin.shopify.com";
+    responseHeaders.set("Content-Security-Policy", fallbackCSP);
+    responseHeaders.set("X-Content-Type-Options", "nosniff");
+    responseHeaders.set("Referrer-Policy", "origin-when-cross-origin");
+    
+    console.log("CSP set with fallback for unknown shop");
+  }
+}
+
 export const authenticate = shopify.authenticate;
 export const unauthenticated = shopify.unauthenticated;
 export const login = shopify.login;
