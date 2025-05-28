@@ -4,6 +4,7 @@ import { RemixServer } from "@remix-run/react";
 import { createReadableStreamFromReadable } from "@remix-run/node";
 import { isbot } from "isbot";
 import { addDocumentResponseHeaders } from "./shopify.server";
+import { addCSPHeaders } from "./middleware/csp.server";
 
 export const streamTimeout = 5000;
 
@@ -13,7 +14,11 @@ export default async function handleRequest(
   responseHeaders,
   remixContext,
 ) {
+  // Add Shopify's document response headers
   addDocumentResponseHeaders(request, responseHeaders);
+  
+  // Apply CSP headers from our middleware
+  addCSPHeaders(request, responseHeaders);
   const userAgent = request.headers.get("user-agent");
   const callbackName = isbot(userAgent ?? "") ? "onAllReady" : "onShellReady";
 
