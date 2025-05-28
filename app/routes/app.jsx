@@ -45,6 +45,7 @@ export default function App() {
           Revenue Forecast
         </Link>
         <Link to="/app/additional">Additional page</Link>
+        <Link to="/app/debug-csp">CSP Debug</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
