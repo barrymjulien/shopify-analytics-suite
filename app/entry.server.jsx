@@ -22,14 +22,23 @@ export default async function handleRequest(
   if (shop) {
     const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`;
     responseHeaders.set("Content-Security-Policy", 
-      `frame-ancestors https://${shopDomain} https://admin.shopify.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com; object-src 'none';`
+      `frame-ancestors https://${shopDomain} https://admin.shopify.com https://*.trycloudflare.com; ` +
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `object-src 'none'; ` +
+      `connect-src 'self' https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `img-src 'self' data: https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com;`
     );
-    responseHeaders.set("X-Frame-Options", "SAMEORIGIN");
+    // Removed X-Frame-Options header as it's deprecated and can conflict with CSP frame-ancestors
   } else {
+    // Fallback CSP for when shop is not determinable (e.g., initial load, development)
     responseHeaders.set("Content-Security-Policy", 
-      `frame-ancestors https://*.myshopify.com https://admin.shopify.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com; object-src 'none';`
+      `frame-ancestors https://*.myshopify.com https://admin.shopify.com https://*.trycloudflare.com; ` +
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `object-src 'none'; ` +
+      `connect-src 'self' https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `img-src 'self' data: https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com;`
     );
-    responseHeaders.set("X-Frame-Options", "SAMEORIGIN");
+    // Removed X-Frame-Options header as it's deprecated and can conflict with CSP frame-ancestors
   }
   
   // Additional headers to prevent sandboxing issues

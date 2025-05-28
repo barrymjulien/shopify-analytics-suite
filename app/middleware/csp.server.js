@@ -35,16 +35,25 @@ export function addCSPHeaders(request, responseHeaders, session = null) {
     const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`;
     
     // Set enhanced CSP directives that allow script execution in iframe
-    const cspValue = `frame-ancestors https://${shopDomain} https://admin.shopify.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com; object-src 'none';`;
+    const cspValue = 
+      `frame-ancestors https://${shopDomain} https://admin.shopify.com https://*.trycloudflare.com; ` +
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `object-src 'none'; ` +
+      `connect-src 'self' https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `img-src 'self' data: https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com;`;
     responseHeaders.set("Content-Security-Policy", cspValue);
     
-    // Updated frame options to use modern approach
-    responseHeaders.set("X-Frame-Options", "SAMEORIGIN");
+    // Removed X-Frame-Options header as it's deprecated and can conflict with CSP frame-ancestors
   } else {
     // Fallback CSP for development or when shop is unknown
-    const cspValue = "frame-ancestors https://*.myshopify.com https://admin.shopify.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com; object-src 'none';";
+    const cspValue = 
+      `frame-ancestors https://*.myshopify.com https://admin.shopify.com https://*.trycloudflare.com; ` +
+      `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `object-src 'none'; ` +
+      `connect-src 'self' https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+      `img-src 'self' data: https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com;`;
     responseHeaders.set("Content-Security-Policy", cspValue);
-    responseHeaders.set("X-Frame-Options", "SAMEORIGIN");
+    // Removed X-Frame-Options header as it's deprecated and can conflict with CSP frame-ancestors
   }
   
   // Always set these security headers

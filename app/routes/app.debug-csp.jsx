@@ -21,8 +21,13 @@ export async function loader({ request }) {
   }, {
     headers: {
       // Manually set CSP header for this route
-      "Content-Security-Policy": `frame-ancestors https://${shop} https://admin.shopify.com`,
-      "X-Frame-Options": `ALLOW-FROM https://${shop}`,
+      "Content-Security-Policy": 
+        `frame-ancestors https://${shop} https://admin.shopify.com https://*.trycloudflare.com; ` +
+        `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+        `object-src 'none'; ` +
+        `connect-src 'self' https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com; ` +
+        `img-src 'self' data: https://*.shopify.com https://*.myshopify.com https://*.trycloudflare.com;`,
+      // Removed X-Frame-Options header as it's deprecated and can conflict with CSP frame-ancestors
       "X-Debug": "CSP-Test-Route"
     }
   });
@@ -41,7 +46,7 @@ export default function DebugCSP() {
             <Text>URL: {url}</Text>
             <Text>Timestamp: {timestamp}</Text>
             <Text variant="bodyMd">
-              Expected CSP: frame-ancestors https://{shop} https://admin.shopify.com
+              Expected CSP: frame-ancestors https://{shop} https://admin.shopify.com https://*.trycloudflare.com
             </Text>
           </BlockStack>
         </Card>

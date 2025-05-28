@@ -26,18 +26,8 @@ function AppContent() {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
         
-        {/* Critical meta tags for iframe embedding */}
-        <meta httpEquiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.shopify.com" />
-        <meta httpEquiv="X-Frame-Options" content="SAMEORIGIN" />
-        
-        {/* Shopify App Bridge preload */}
+        {/* Shopify App Bridge preconnect */}
         <link rel="preconnect" href="https://cdn.shopify.com/" />
-        <link
-          rel="preload"
-          href="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-          as="script"
-          crossOrigin="anonymous"
-        />
         
         {/* Shopify fonts */}
         <link
@@ -47,6 +37,13 @@ function AppContent() {
         
         <Meta />
         <Links />
+        
+        {/* App Bridge must be the FIRST script loaded - no preload to avoid warnings */}
+        <script 
+          src="https://cdn.shopify.com/shopifycloud/app-bridge.js" 
+          data-api-key={process.env.SHOPIFY_API_KEY || ''}
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body>
         {/* Add data attributes to help with iframe detection */}
@@ -55,12 +52,6 @@ function AppContent() {
         </div>
         <ScrollRestoration />
         <Scripts />
-        
-        {/* Ensure App Bridge loads properly */}
-        <script
-          src="https://cdn.shopify.com/shopifycloud/app-bridge.js"
-          defer
-        ></script>
       </body>
     </html>
   );

@@ -46,6 +46,8 @@ export default function App() {
         </Link>
         <Link to="/app/additional">Additional page</Link>
         <Link to="/app/debug-csp">CSP Debug</Link>
+        <Link to="/app/sandbox-test">Sandbox Test</Link>
+        <Link to="/app/sandbox-diagnostics">Sandbox Diagnostics</Link>
       </NavMenu>
       <Outlet />
     </AppProvider>
