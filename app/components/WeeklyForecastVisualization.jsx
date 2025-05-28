@@ -271,7 +271,9 @@ function WeeklyForecastVisualizationContent({
     function showTooltip(event, item, value) {
       // This would be implemented with a dedicated tooltip component
       // For simplicity, we're not implementing the full tooltip here
-      console.log('Tooltip:', item, value);
+      // Replace console.log with analyticsLogger.debug
+      // Note: We're not importing analyticsLogger here since this is client-side
+      // In a real implementation, we would use a client-side logger
     }
     
   }, [data, visualizationType, metricType]);
@@ -321,7 +323,7 @@ function WeeklyForecastVisualizationContent({
           </InlineStack>
         </InlineStack>
         
-        <div className={styles.chartContainer} style={{ height: '300px' }}> {/* Keep specific height if needed */}
+        <div className={styles.tallChartContainer}>
           <canvas
             ref={chartRef}
             className={styles.canvasElement}

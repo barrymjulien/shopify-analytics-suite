@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import polarisPkg from '@shopify/polaris';
 import { FiDownload } from 'react-icons/fi';
 import { ExportService } from '../services/exportService';
-import logger from '../services/loggerService';
+import { analyticsLogger } from '../services/loggerService';
 
 const { Button, Popover, ActionList, Icon, Stack, Banner } = polarisPkg;
 
@@ -34,7 +34,7 @@ export function ExportOptions({
     setExporting(true);
     if (onExportStart) onExportStart(format);
     
-    logger.info('Starting export', { format, recordCount: Array.isArray(data) ? data.length : 1 });
+    analyticsLogger.info('Starting export', { format, recordCount: Array.isArray(data) ? data.length : 1 });
     
     try {
       let result;
@@ -67,9 +67,9 @@ export function ExportOptions({
         throw new Error(`Export failed for format: ${format}`);
       }
       
-      logger.info('Export completed successfully', { format });
+      analyticsLogger.info('Export completed successfully', { format });
     } catch (err) {
-      logger.error('Export failed', err, { format });
+      analyticsLogger.error('Export failed', err, { format });
       setError(`Export failed: ${err.message}`);
     } finally {
       setExporting(false);

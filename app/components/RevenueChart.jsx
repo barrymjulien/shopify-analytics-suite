@@ -82,7 +82,7 @@ function RevenueChartContent({ data }) {
   }
   
   return (
-    <div className={styles.chartContainer} style={{ height: '200px' }}> {/* Keep specific height if needed */}
+    <div className={styles.chartContainer}> {/* Using CSS module instead of inline style */}
       <canvas 
         ref={chartRef} 
         className={styles.canvasElement}
