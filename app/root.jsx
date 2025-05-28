@@ -4,8 +4,21 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useLoaderData,
 } from "@remix-run/react";
+import { json } from "@remix-run/node";
+import { addCSPHeaders } from "./middleware/csp.server";
 import ErrorBoundary from "./components/ErrorBoundary";
+
+export async function loader({ request }) {
+  // Create default headers
+  const headers = new Headers();
+  
+  // Apply CSP headers
+  addCSPHeaders(request, headers);
+  
+  return json({}, { headers });
+}
 
 function AppContent() {
   return (

@@ -1,5 +1,6 @@
 import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
 import { boundary } from "@shopify/shopify-app-remix/server";
+import { addCSPHeaders } from "../middleware/csp.server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
@@ -44,5 +45,13 @@ export function ErrorBoundary() {
 }
 
 export const headers = (headersArgs) => {
-  return boundary.headers(headersArgs);
+  const headers = boundary.headers(headersArgs);
+  const { request } = headersArgs.loaderContext;
+  
+  // Apply CSP headers to all app routes
+  if (request && headers) {
+    addCSPHeaders(request, headers);
+  }
+  
+  return headers;
 };
