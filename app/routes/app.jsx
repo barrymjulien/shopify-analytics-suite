@@ -1,33 +1,33 @@
 import { Link, Outlet, useLoaderData, useRouteError } from "@remix-run/react";
-import { json } from "@remix-run/node";
 import { boundary } from "@shopify/shopify-app-remix/server";
-import { addCSPHeaders } from "../middleware/csp.server";
-import shopify, { authenticate } from "../shopify.server";
 import { AppProvider } from "@shopify/shopify-app-remix/react";
 import { NavMenu } from "@shopify/app-bridge-react";
 import polarisStyles from "@shopify/polaris/build/esm/styles.css?url";
+import { authenticate } from "../shopify.server";
 
 export const links = () => [{ rel: "stylesheet", href: polarisStyles }];
 
 export const loader = async ({ request }) => {
-  await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
 
-  // Get the authenticated session to pass to CSP headers
-  const session = await shopify.sessionStorage.findSessionsByShop("admin");
-  
-  // Create headers for the response
-  const headers = new Headers();
-  
-  // Add CSP headers using session info if available
-  addCSPHeaders(request, headers, session[0]);
+  return { 
+    apiKey: process.env.SHOPIFY_API_KEY || "",
+    shop: session?.shop || null
+  };
+};
 
-  return json({ 
-    apiKey: process.env.SHOPIFY_API_KEY || "" 
-  }, { headers });
+// Add headers function to set CSP
+export const headers = ({ loaderHeaders, parentHeaders, actionHeaders }) => {
+  return {
+    ...boundary.headers({ loaderHeaders, parentHeaders, actionHeaders }),
+    // Ensure CSP headers are included
+    "X-Frame-Options": loaderHeaders.get("X-Frame-Options") || "",
+    "Content-Security-Policy": loaderHeaders.get("Content-Security-Policy") || "",
+  };
 };
 
 export default function App() {
-  const { apiKey } = useLoaderData();
+  const { apiKey, shop } = useLoaderData();
 
   return (
     <AppProvider isEmbeddedApp apiKey={apiKey}>
@@ -55,15 +55,3 @@ export default function App() {
 export function ErrorBoundary() {
   return boundary.error(useRouteError());
 }
-
-export const headers = (headersArgs) => {
-  const headers = boundary.headers(headersArgs);
-  const { request } = headersArgs.loaderContext;
-  
-  // Apply CSP headers to all app routes
-  if (request && headers) {
-    addCSPHeaders(request, headers);
-  }
-  
-  return headers;
-};
