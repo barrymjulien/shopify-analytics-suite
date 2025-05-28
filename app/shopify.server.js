@@ -33,42 +33,22 @@ export function addDocumentResponseHeaders(request, responseHeaders) {
   // Call the original function first
   shopify.addDocumentResponseHeaders(request, responseHeaders);
   
-  // Extract shop domain from request URL or headers
+  // Extract shop domain from request
   const url = new URL(request.url);
-  let shop = url.searchParams.get("shop");
+  const shop = url.searchParams.get("shop");
   
-  // Also try to get shop from headers (for authenticated requests)
-  if (!shop) {
-    const authHeader = request.headers.get("authorization");
-    if (authHeader) {
-      // You might need to decode JWT or get shop from session
-      // For now, we'll use a fallback
-      shop = "*"; // Will be handled in fallback
-    }
-  }
-  
-  if (shop && shop !== "*") {
-    // Ensure shop domain has the correct format
-    const shopDomain = shop.includes('.myshopify.com') ? shop : `${shop}.myshopify.com`;
-    
+  if (shop) {
     // Set Content Security Policy for iframe protection
-    const cspValue = `frame-ancestors https://${shopDomain} https://admin.shopify.com`;
+    const cspValue = `frame-ancestors https://${shop} https://admin.shopify.com`;
     responseHeaders.set("Content-Security-Policy", cspValue);
     
     // Additional security headers for embedded apps
-    responseHeaders.set("X-Frame-Options", `ALLOW-FROM https://${shopDomain}`);
+    responseHeaders.set("X-Frame-Options", `ALLOW-FROM https://${shop}`);
     responseHeaders.set("X-Content-Type-Options", "nosniff");
     responseHeaders.set("Referrer-Policy", "origin-when-cross-origin");
-    
-    console.log(`CSP set for shop: ${shopDomain}`);
   } else {
     // Fallback CSP for when shop is not available
-    const fallbackCSP = "frame-ancestors https://*.myshopify.com https://admin.shopify.com";
-    responseHeaders.set("Content-Security-Policy", fallbackCSP);
-    responseHeaders.set("X-Content-Type-Options", "nosniff");
-    responseHeaders.set("Referrer-Policy", "origin-when-cross-origin");
-    
-    console.log("CSP set with fallback for unknown shop");
+    responseHeaders.set("Content-Security-Policy", "frame-ancestors https://*.myshopify.com https://admin.shopify.com");
   }
 }
 
