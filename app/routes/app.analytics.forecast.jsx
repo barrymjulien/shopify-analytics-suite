@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import {
@@ -20,7 +20,7 @@ import {
 // At the top of the file, add these imports
 import { WeeklyForecastVisualization } from "../components/WeeklyForecastVisualization";
 import { ForecastScenarioTable } from "../components/ForecastScenarioTable";
-import { FiArrowLeft, FiHelpCircle } from 'react-icons/fi';
+import { ArrowLeftIcon, QuestionIcon } from '../lib/icons';
 import { authenticate } from "../shopify.server";
 import { addDays, addMonths, format, startOfMonth, endOfMonth, parseISO, differenceInDays, eachDayOfInterval } from 'date-fns';
 
@@ -243,7 +243,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Historical growth rate</Text>
                   <Tooltip content="Based on your store's growth over the past 12 months">
-                    <Icon source={FiHelpCircle} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">+8%</Text>
@@ -253,7 +253,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Seasonal trends</Text>
                   <Tooltip content="Based on your industry's seasonal patterns">
-                    <Icon source={FiHelpCircle} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">Q4 boost expected</Text>
@@ -263,7 +263,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Customer retention rate</Text>
                   <Tooltip content="Percentage of customers who make repeat purchases">
-                    <Icon source={FiHelpCircle} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">42%</Text>
@@ -273,7 +273,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Average order frequency</Text>
                   <Tooltip content="How often customers make repeat purchases">
-                    <Icon source={FiHelpCircle} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">68 days</Text>
@@ -283,7 +283,7 @@ export default function RevenueForecast() {
                 <InlineStack gap="200">
                   <Text variant="bodyMd">Market trend adjustment</Text>
                   <Tooltip content="Based on industry benchmarks and trends">
-                    <Icon source={FiHelpCircle} color="subdued" />
+                    <Icon source={QuestionIcon} color="subdued" />
                   </Tooltip>
                 </InlineStack>
                 <Text variant="bodyMd" fontWeight="semibold">+2%</Text>
@@ -317,9 +317,9 @@ export default function RevenueForecast() {
               <Box paddingBlockStart="300">
                 <Text variant="headingSm">Actions to Improve Forecast</Text>
                 <BlockStack gap="200" paddingBlockStart="200">
-                  <Text variant="bodyMd">• Add more historical data for better predictions</Text>
-                  <Text variant="bodyMd">• Integrate marketing campaign plans</Text>
-                  <Text variant="bodyMd">• Add planned product launches</Text>
+                  <Text variant="bodyMd">â€¢ Add more historical data for better predictions</Text>
+                  <Text variant="bodyMd">â€¢ Integrate marketing campaign plans</Text>
+                  <Text variant="bodyMd">â€¢ Add planned product launches</Text>
                 </BlockStack>
               </Box>
             </BlockStack>
@@ -406,7 +406,7 @@ export default function RevenueForecast() {
   return (
     <Page
       title="Revenue Forecast"
-      backAction={{ content: 'Back', icon: FiArrowLeft, onAction: () => navigate('/app') }}
+      backAction={{ content: 'Back', icon: ArrowLeftIcon, onAction: () => navigate('/app') }}
     >
       <BlockStack gap="500">
         <Card>
@@ -460,3 +460,4 @@ export default function RevenueForecast() {
     </Page>
   );
 }
+

@@ -44,6 +44,155 @@ export class AnalyticsService {
   }
 
   /**
+   * Enhanced cache retrieval with stale-while-revalidate support
+   */
+  async getCache(key, options = {}) {
+    try {
+      const cache = await prisma.analyticsCache.findUnique({
+        where: {
+          shop_metricType: {
+            shop: this.shop,
+            metricType: key
+          }
+        }
+      });
+      
+      if (!cache) return null;
+      
+      const now = new Date();
+      const cacheAge = (now - cache.calculatedAt) / 1000; // age in seconds
+      const isExpired = now > new Date(cache.expiresAt);
+      const isStale = options.maxStaleness ? cacheAge > options.maxStaleness : isExpired;
+      
+      // Return enhanced cache format with metadata
+      const data = cache.metricData ? JSON.parse(cache.metricData) : null;
+      
+      if (isExpired && !options.maxStaleness) {
+        return null; // Cache is expired and no staleness tolerance
+      }
+      
+      if (isStale && !options.ignoreErrors) {
+        // Trigger background refresh
+        this.triggerBackgroundRefresh(key, cache);
+      }
+      
+      return {
+        data,
+        metadata: {
+          version: '1.0',
+          generatedAt: cache.calculatedAt,
+          expiresAt: cache.expiresAt,
+          isStale
+        }
+      };
+    } catch (error) {
+      analyticsLogger.error('Enhanced cache read error:', error, {
+        shop: this.shop,
+        metricType: key
+      });
+      return options.ignoreErrors ? null : Promise.reject(error);
+    }
+  }
+
+  /**
+   * Trigger background refresh of cache
+   */
+  async triggerBackgroundRefresh(key, cache) {
+    // This runs in background without blocking
+    setImmediate(async () => {
+      try {
+        analyticsLogger.info(`Background refresh triggered for ${key}`, { shop: this.shop });
+        
+        // Determine what to refresh based on key
+        if (key.startsWith('revenue_overview_')) {
+          const days = parseInt(key.split('_')[2]);
+          await this.getRevenueOverview(days);
+        } else if (key === 'clv_all_customers') {
+          await this.calculateCLV();
+        }
+      } catch (error) {
+        analyticsLogger.error('Background refresh failed:', error, {
+          shop: this.shop,
+          key
+        });
+      }
+    });
+  }
+
+  /**
+   * Get data type from cache key
+   */
+  getDataTypeFromKey(key) {
+    if (key.includes('revenue')) return 'revenue';
+    if (key.includes('clv')) return 'customer';
+    if (key.includes('forecast')) return 'forecast';
+    return 'general';
+  }
+
+  /**
+   * Count data points for cache metadata
+   */
+  countDataPoints(data) {
+    if (Array.isArray(data)) return data.length;
+    if (data && typeof data === 'object') {
+      return Object.keys(data).length;
+    }
+    return 1;
+  }
+
+  /**
+   * Prefetch common caches
+   */
+  async prefetchCommonCaches() {
+    try {
+      // Prefetch in background
+      setImmediate(async () => {
+        await Promise.allSettled([
+          this.getRevenueOverview(30),
+          this.calculateCLV()
+        ]);
+      });
+    } catch (error) {
+      analyticsLogger.error('Prefetch error:', error, { shop: this.shop });
+    }
+  }
+
+  /**
+   * Clean up expired caches
+   */
+  async cleanupExpiredCaches() {
+    try {
+      const deleted = await prisma.analyticsCache.deleteMany({
+        where: {
+          shop: this.shop,
+          expiresAt: {
+            lt: new Date()
+          }
+        }
+      });
+      
+      analyticsLogger.info('Cleaned up expired caches', {
+        shop: this.shop,
+        deletedCount: deleted.count
+      });
+    } catch (error) {
+      analyticsLogger.error('Cache cleanup error:', error, { shop: this.shop });
+    }
+  }
+
+  /**
+   * Cache TTL constants
+   */
+  static CACHE_TTL = {
+    REVENUE_DASHBOARD: 3600,      // 1 hour
+    CUSTOMER_SEGMENTS: 7200,      // 2 hours
+    CLV_DATA: 14400,              // 4 hours
+    FORECAST_DATA: 86400,         // 24 hours
+    HISTORICAL_DATA: 604800,      // 1 week
+    DEFAULT: 1800                 // 30 minutes
+  };
+
+  /**
    * Calculate Customer Lifetime Value
    */
   async calculateCLV(customerId = null) {

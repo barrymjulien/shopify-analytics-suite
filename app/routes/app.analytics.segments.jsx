@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import {
@@ -21,7 +21,7 @@ import {
   Tooltip,
   InlineStack
 } from "@shopify/polaris";
-import { FiArrowLeft, FiEdit, FiTrash2, FiPlus, FiHelpCircle } from 'react-icons/fi';
+import { ArrowLeftIcon, EditIcon, DeleteIcon, PlusIcon, QuestionIcon } from '../lib/icons';
 import { authenticate } from "../shopify.server";
 
 export async function loader({ request }) {
@@ -214,14 +214,14 @@ export default function ManageCustomerSegments() {
     </Text>,
     <InlineStack key={`actions-${segment.id}`} align="end" gap="200">
       <Button 
-        icon={FiEdit} 
+        icon={EditIcon} 
         onClick={() => handleEditSegment(segment)}
         size="slim"
         plain
         accessibilityLabel={`Edit ${segment.name} segment`}
       />
       <Button 
-        icon={FiTrash2} 
+        icon={DeleteIcon} 
         tone="critical"
         onClick={() => handleDeleteSegment(segment)}
         size="slim"
@@ -341,10 +341,10 @@ export default function ManageCustomerSegments() {
   return (
     <Page
       title="Customer Segments"
-      backAction={{ content: 'Back', icon: FiArrowLeft, onAction: () => navigate('/app') }}
+      backAction={{ content: 'Back', icon: ArrowLeftIcon, onAction: () => navigate('/app') }}
       primaryAction={{ 
         content: 'Create New Segment', 
-        icon: FiPlus,
+        icon: PlusIcon,
         onAction: handleNewSegment
       }}
     >
@@ -618,3 +618,4 @@ export default function ManageCustomerSegments() {
     </Page>
   );
 }
+

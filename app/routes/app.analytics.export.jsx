@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, useNavigate } from "@remix-run/react";
 import {
@@ -20,7 +20,7 @@ import {
 import { ReportSelector } from "../components/ReportSelector";
 import { ExportOptions } from "../components/ExportOptions";
 import { authenticate } from "../shopify.server";
-import { FiArrowLeft } from 'react-icons/fi';
+import { ArrowLeftIcon } from '../lib/icons';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 
 export async function loader({ request }) {
@@ -254,7 +254,7 @@ export default function ExportAnalyticsReport() {
   return (
     <Page
       title="Export Analytics Report"
-      backAction={{ content: 'Back', icon: FiArrowLeft, onAction: () => navigate('/app') }}
+      backAction={{ content: 'Back', icon: ArrowLeftIcon, onAction: () => navigate('/app') }}
     >
       <BlockStack gap="500">
         {/* Replace the form with the ReportSelector component */}
@@ -295,7 +295,7 @@ export default function ExportAnalyticsReport() {
                     if (!value) return null;
                     return (
                       <Box key={key} paddingBlockStart="100" paddingBlockEnd="100">
-                        <Text variant="bodyMd">✓ {key.charAt(0).toUpperCase() + key.slice(1)} Analytics</Text>
+                        <Text variant="bodyMd">âœ“ {key.charAt(0).toUpperCase() + key.slice(1)} Analytics</Text>
                       </Box>
                     );
                   })}
@@ -361,7 +361,7 @@ export default function ExportAnalyticsReport() {
               </Text>
               {/* Replace with actual spinner */}
               <Box paddingBlockStart="400" paddingBlockEnd="400" alignment="center">
-                <Text variant="bodyLg">⟳</Text>
+                <Text variant="bodyLg">âŸ³</Text>
               </Box>
               <Text variant="bodySm" tone="subdued">
                 This may take a few moments depending on the date range and metrics selected.
@@ -382,3 +382,4 @@ export default function ExportAnalyticsReport() {
     </Page>
   );
 }
+

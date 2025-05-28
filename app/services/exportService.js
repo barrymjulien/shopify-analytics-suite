@@ -60,16 +60,18 @@ export class ExportService {
    * @param {Array} options.columns - Column definitions for the table
    * @param {Object} options.additionalInfo - Additional info to include
    */
-  static exportToPDF(options) {
+  static exportToPDF(data, options = {}) {
     const { 
-      data, 
       filename = 'export.pdf', 
       title = 'Analytics Report',
       columns,
       additionalInfo = {}
     } = options;
     
-    if (!data || !data.length) {
+    // Handle both direct data array and options object format
+    const exportData = Array.isArray(data) ? data : (options.data || []);
+    
+    if (!exportData || !exportData.length) {
       console.error('No data to export');
       return null;
     }
@@ -104,14 +106,14 @@ export class ExportService {
         
         tableData = [
           headers,
-          ...data.map(row => fields.map(field => row[field]?.toString() || ''))
+          ...exportData.map(row => fields.map(field => row[field]?.toString() || ''))
         ];
       } else {
         // Use all fields from the data
-        const headers = Object.keys(data[0]);
+        const headers = Object.keys(exportData[0]);
         tableData = [
           headers,
-          ...data.map(row => headers.map(header => row[header]?.toString() || ''))
+          ...exportData.map(row => headers.map(header => row[header]?.toString() || ''))
         ];
       }
       
@@ -130,57 +132,10 @@ export class ExportService {
         margin: { top: 10 }
       });
       
-      // Server-side approach
-      if (typeof window === 'undefined') {
-        // Return the PDF document for server-side handling
-        return doc.output();
-      }
+      // Save the PDF
+      doc.save(filename);
+      return true;
       
-      // Client-side: Try multiple approaches for download
-      
-      // Approach 1: Use jsPDF's built-in save method
-      try {
-        doc.save(filename);
-        return true;
-      } catch (e) {
-        console.warn('Direct save failed, trying alternative approach', e);
-      }
-      
-      // Approach 2: Blob URL approach (similar to CSV)
-      try {
-        const pdfBlob = doc.output('blob');
-        const url = URL.createObjectURL(pdfBlob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        return true;
-      } catch (e) {
-        console.warn('Blob URL approach failed, trying data URI', e);
-      }
-      
-      // Approach 3: Data URI approach
-      try {
-        const pdfData = doc.output('datauristring');
-        const link = document.createElement('a');
-        link.href = pdfData;
-        link.download = filename;
-        link.target = '_blank';
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        return true;
-      } catch (e) {
-        console.error('All PDF download approaches failed', e);
-        return false;
-      }
     } catch (error) {
       console.error('PDF Export Error:', error);
       return null;

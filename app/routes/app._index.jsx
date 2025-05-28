@@ -24,12 +24,15 @@ import { getOnboardingState } from "../services/onboarding.server";
 import { MetricCard } from "../components/MetricCard";
 // Replace the import for RevenueChart with:
 import { RevenueTrendChart } from "../components/RevenueTrendChart";
-import { CustomerSegments } from "../components/CustomerSegments";
+import { CustomerSegments as CustomerSegmentsComponent } from "../components/CustomerSegments";
 import { DateSelector } from '../components/DateSelector';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { analyticsLogger } from "../services/loggerService";
 import { handleApiError } from "../utils/errorHandling";
 import { formatCurrency } from "../utils/formatters";
+
+// Then create a wrapper function after the imports:
+const CustomerSegments = ({ segments }) => <CustomerSegmentsComponent data={segments} />;
 
 export const loader = async ({ request }) => {
   try {

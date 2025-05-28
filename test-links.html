@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Links</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .link-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .link-button {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #008060;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        h1 {
+            color: #333;
+        }
+        .note {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-left: 3px solid #008060;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shopify Analytics Suite - Test Links</h1>
+    <div class="link-container">
+        <h2>Quick Action Links</h2>
+        <a href="/app/analytics/export" class="link-button">Export Analytics Report</a>
+        <a href="/app/analytics/segments" class="link-button">Manage Customer Segments</a>
+        <a href="/app/analytics/forecast" class="link-button">View Revenue Forecast</a>
+    </div>
+
+    <div class="link-container">
+        <h2>Navigation Menu Links</h2>
+        <a href="/app" class="link-button">Home</a>
+        <a href="/app/analytics" class="link-button">Analytics (Root)</a>
+        <a href="/app/additional" class="link-button">Additional Page</a>
+    </div>
+
+    <div class="note">
+        <p><strong>Note:</strong> This page is for testing links in the Shopify Analytics Suite. Click the links to verify they are working correctly and resolving to the proper route components.</p>
+    </div>
+</body>
+</html>
