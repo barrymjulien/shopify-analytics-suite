@@ -1,9 +1,7 @@
-import { useState } from "react";
 import { json } from "@remix-run/node";
 import { useLoaderData, Form } from "@remix-run/react";
 import {
   Page,
-  Layout,
   Card,
   Banner,
   BlockStack,
@@ -17,7 +15,7 @@ import { prisma } from "../db.server";
 
 export async function loader({ request }) {
   try {
-    const { admin, session } = await authenticate.admin(request);
+    const { session } = await authenticate.admin(request);
     const { shop, accessToken } = session;
     
     // Get onboarding state if exists
@@ -57,7 +55,7 @@ export async function loader({ request }) {
 }
 
 export async function action({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
   
   const formData = await request.formData();

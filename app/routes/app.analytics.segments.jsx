@@ -17,16 +17,14 @@ import {
   LegacyCard,
   Tabs,
   Badge,
-  Icon,
-  Tooltip,
   InlineStack
 } from "@shopify/polaris";
-import { ArrowLeftIcon, EditIcon, DeleteIcon, PlusIcon, QuestionIcon } from '../lib/icons';
+import { ArrowLeftIcon, EditIcon, DeleteIcon, PlusIcon } from '../lib/icons';
 import { authenticate } from "../shopify.server";
 
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
-  const { shop, accessToken } = session;
+  const { session } = await authenticate.admin(request);
+  const { shop } = session;
   
   // In a production app, we'd fetch this from the database with efficient queries like:
   // const segments = await prisma.customerSegment.findMany({
@@ -618,4 +616,3 @@ export default function ManageCustomerSegments() {
     </Page>
   );
 }
-

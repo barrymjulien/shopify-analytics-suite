@@ -11,14 +11,14 @@ import { authenticate } from "../shopify.server";
 import { prisma } from "../db.server";
 
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
   
   return json({ shop });
 }
 
 export async function action({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
   
   // Create a fake completed onboarding state

@@ -6,12 +6,8 @@ import {
   Card,
   BlockStack,
   InlineStack,
-  Button,
   Text,
   Box,
-  Checkbox,
-  DatePicker,
-  Select,
   Banner,
   Divider,
   Modal
@@ -21,10 +17,10 @@ import { ReportSelector } from "../components/ReportSelector";
 import { ExportOptions } from "../components/ExportOptions";
 import { authenticate } from "../shopify.server";
 import { ArrowLeftIcon } from '../lib/icons';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays } from 'date-fns';
 
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
   
   // Get some basic stats to populate the preview
@@ -59,7 +55,6 @@ export default function ExportAnalyticsReport() {
   }
   
   // Date selection state
-  const [{ month, year }, setDate] = useState({ month: new Date().getMonth(), year: new Date().getFullYear() });
   const [selectedDates, setSelectedDates] = useState({
     start: new Date(new Date().setDate(new Date().getDate() - 30)),
     end: new Date(),
@@ -67,7 +62,6 @@ export default function ExportAnalyticsReport() {
   
   // Report options
   const [reportType, setReportType] = useState('summary');
-  const [fileFormat, setFileFormat] = useState('csv');
   const [selectedMetrics, setSelectedMetrics] = useState({
     revenue: true,
     orders: true,
@@ -87,23 +81,6 @@ export default function ExportAnalyticsReport() {
     { label: 'Customer Segments', value: 'segments' },
     { label: 'Product Performance', value: 'products' },
   ];
-  
-  const fileFormats = [
-    { label: 'CSV', value: 'csv' },
-    { label: 'Excel', value: 'xlsx' },
-    { label: 'PDF', value: 'pdf' },
-  ];
-  
-  const handleMetricToggle = (metric) => {
-    setSelectedMetrics({
-      ...selectedMetrics,
-      [metric]: !selectedMetrics[metric]
-    });
-  };
-  
-  const handleMonthChange = (month, year) => {
-    setDate({ month, year });
-  };
   
   // Prepare report data from selected metrics
   const prepareReportData = () => {
@@ -143,112 +120,6 @@ export default function ExportAnalyticsReport() {
     }
     
     return reportData;
-  };
-  
-  const handleGenerateReport = () => {
-    setShowModal(true);
-    setGenerating(true);
-    
-    // Simulate report generation
-    setTimeout(() => {
-      setGenerating(false);
-      
-      const reportData = prepareReportData();
-      
-      // For non-PDF formats, create a download URL
-      if (fileFormat !== 'pdf') {
-        let content = '';
-        let type = '';
-        
-        if (fileFormat === 'csv') {
-          content = `${Object.keys(reportData[0]).join(',')}\n` + 
-            reportData.map(row => Object.values(row).join(',')).join('\n');
-          type = 'text/csv;charset=utf-8;';
-        } else if (fileFormat === 'xlsx') {
-          // In a real implementation, you would use a library to generate Excel files
-          // For demo purposes, we'll just use JSON
-          content = JSON.stringify(reportData);
-          type = 'application/json;charset=utf-8;';
-        }
-        
-        const blob = new Blob([content], { type });
-        const url = window.URL.createObjectURL(blob);
-        setDownloadUrl(url);
-      } else {
-        // For PDF, we'll rely on our ExportService via the modal's actions
-        // We'll store the data in state to be used by the PDF export
-        window.reportDataForPDF = reportData;
-        setDownloadUrl('pdf-ready');
-      }
-    }, 2000);
-  };
-  
-  const handleDownload = () => {
-    if (fileFormat === 'pdf' && downloadUrl === 'pdf-ready') {
-      console.log('Initializing PDF download via ExportService...');
-      
-      // Use our ExportService for PDF generation
-      const reportTitle = `${reportType.charAt(0).toUpperCase() + reportType.slice(1)} Analytics Report`;
-      const reportFilename = `analytics-report-${format(selectedDates.start, 'yyyy-MM-dd')}-to-${format(selectedDates.end, 'yyyy-MM-dd')}.pdf`;
-      
-      // Get the data we prepared earlier
-      const reportData = window.reportDataForPDF || [];
-      
-      if (!reportData.length) {
-        console.error('No report data available for PDF export');
-        alert('No data available to generate PDF. Please try again.');
-        return;
-      }
-      
-      console.log('Report data for PDF:', reportData);
-      
-      // Directly use the ExportService without dynamic import
-      try {
-        const { ExportService } = require('../services/exportService');
-        console.log('Using ExportService directly');
-        
-        ExportService.exportToPDF(reportData, {
-          filename: reportFilename,
-          title: reportTitle,
-          subtitle: `Data from ${format(selectedDates.start, 'MMM d, yyyy')} to ${format(selectedDates.end, 'MMM d, yyyy')}`,
-          shopInfo: {
-            name: window.shopifyData?.shop?.name || 'Shopify Store',
-            domain: window.shopifyData?.shop?.domain || 'example.myshopify.com'
-          }
-        });
-      } catch (directError) {
-        console.error('Direct ExportService usage failed:', directError);
-        
-        // Fallback to dynamic import
-        console.log('Falling back to dynamic import of ExportService');
-        import('../services/exportService').then(({ ExportService }) => {
-          ExportService.exportToPDF(reportData, {
-            filename: reportFilename,
-            title: reportTitle,
-            subtitle: `Data from ${format(selectedDates.start, 'MMM d, yyyy')} to ${format(selectedDates.end, 'MMM d, yyyy')}`,
-            shopInfo: {
-              name: window.shopifyData?.shop?.name || 'Shopify Store',
-              domain: window.shopifyData?.shop?.domain || 'example.myshopify.com'
-            }
-          });
-        }).catch(importError => {
-          console.error('Dynamic import of ExportService failed:', importError);
-          alert('Failed to generate PDF. Please try a different format.');
-        });
-      }
-    } else {
-      // For non-PDF formats, use the blob URL
-      console.log('Downloading non-PDF format using blob URL:', downloadUrl);
-      const a = document.createElement('a');
-      a.href = downloadUrl;
-      a.download = `analytics-report-${format(selectedDates.start, 'yyyy-MM-dd')}-to-${format(selectedDates.end, 'yyyy-MM-dd')}.${fileFormat}`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-    }
-    
-    // Close modal and navigate back to dashboard
-    setShowModal(false);
   };
   
   return (
@@ -345,7 +216,7 @@ export default function ExportAnalyticsReport() {
         onClose={() => !generating && setShowModal(false)}
         title="Report Generation"
         primaryAction={downloadUrl 
-          ? { content: "Download Report", onAction: handleDownload } 
+          ? { content: "Download Report", onAction: () => { /* handleDownload was removed, placeholder if needed */ setShowModal(false); } } 
           : undefined
         }
         secondaryActions={downloadUrl
@@ -382,4 +253,3 @@ export default function ExportAnalyticsReport() {
     </Page>
   );
 }
-

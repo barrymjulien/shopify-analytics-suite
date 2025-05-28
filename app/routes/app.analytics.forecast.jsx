@@ -8,7 +8,6 @@ import {
   Box,
   Text,
   Select,
-  Banner,
   Button,
   Tabs,
   LegacyCard,
@@ -22,10 +21,10 @@ import { WeeklyForecastVisualization } from "../components/WeeklyForecastVisuali
 import { ForecastScenarioTable } from "../components/ForecastScenarioTable";
 import { ArrowLeftIcon, QuestionIcon } from '../lib/icons';
 import { authenticate } from "../shopify.server";
-import { addDays, addMonths, format, startOfMonth, endOfMonth, parseISO, differenceInDays, eachDayOfInterval } from 'date-fns';
+import { addMonths, format, startOfMonth, endOfMonth, parseISO, differenceInDays, eachDayOfInterval } from 'date-fns';
 
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
 
   const url = new URL(request.url);
@@ -72,7 +71,6 @@ export async function loader({ request }) {
     const date = addMonths(today, i);
     const startDate = startOfMonth(date);
     const endDate = endOfMonth(date);
-    const daysInMonth = endDate.getDate();
     
     // Base monthly value with some seasonality
     let monthValue = 30000 + (i * 2000);
@@ -117,7 +115,7 @@ export async function loader({ request }) {
 
 export default function RevenueForecast() {
   // Note: useLoaderData() will now provide dailyRevenue, dailyForecast, monthlyForecast
-  const { dailyRevenue, dailyForecast, monthlyForecast, summary } = useLoaderData();
+  const { dailyForecast, monthlyForecast, summary } = useLoaderData();
   const navigate = useNavigate();
   
   // State
@@ -460,4 +458,3 @@ export default function RevenueForecast() {
     </Page>
   );
 }
-

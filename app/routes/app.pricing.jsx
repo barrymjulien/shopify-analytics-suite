@@ -19,7 +19,7 @@ import { SUBSCRIPTION_PLANS, checkSubscription } from "../services/billing.serve
  * Loader for the pricing page
  */
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   
   // Check subscription status
   const subscription = await checkSubscription(session);

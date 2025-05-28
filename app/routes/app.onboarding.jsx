@@ -13,7 +13,6 @@ import {
   TextField,
   Select,
   Checkbox,
-  InlineStack,
   Box
 } from "@shopify/polaris";
 import { authenticate } from "../shopify.server";
@@ -58,7 +57,7 @@ const WelcomeStep = () => {
  * Loader for the onboarding page
  */
 export async function loader({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
   
   // Get current onboarding state
@@ -85,7 +84,7 @@ export async function loader({ request }) {
  * Action for the onboarding page
  */
 export async function action({ request }) {
-  const { admin, session } = await authenticate.admin(request);
+  const { session } = await authenticate.admin(request);
   const { shop } = session;
   
   // Process form submission

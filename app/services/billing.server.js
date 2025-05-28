@@ -1,6 +1,4 @@
 // app/services/billing.server.js
-import { authenticate } from "../shopify.server";
-import { GraphqlClient } from '@shopify/shopify-api';
 import { billingLogger } from "./loggerService";
 
 /**

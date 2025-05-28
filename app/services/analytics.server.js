@@ -1,6 +1,6 @@
 import { prisma } from "../db.server";
-import { format, subDays, startOfMonth } from "date-fns";
-import { mean, standardDeviation } from "simple-statistics";
+import { format, subDays } from "date-fns";
+import { mean } from "simple-statistics";
 import { analyticsLogger } from "./loggerService"; // Removed eventLogger import
 
 export class AnalyticsService {
@@ -419,64 +419,8 @@ export class AnalyticsService {
     return "Promising";
   }
 
-  /**
-   * Helper: Cache management
-   */
-  async getCache(key) {
-    try {
-      // Use the unique constraint for faster lookup
-      const cache = await prisma.analyticsCache.findUnique({
-        where: {
-          shop_metricType: {
-            shop: this.shop,
-            metricType: key
-          }
-        }
-      });
-      
-      // Only return if the cache is valid (not expired)
-      if (cache && new Date(cache.expiresAt) > new Date()) {
-        return cache.metricData ? JSON.parse(cache.metricData) : null;
-      }
-      
-      return null;
-    } catch (error) {
-      analyticsLogger.error('Cache read error:', error, {
-        shop: this.shop,
-        metricType: key
-      });
-      return null;
-    }
-  }
-
-  async setCache(key, data, ttlSeconds) {
-    try {
-      await prisma.analyticsCache.upsert({
-        where: {
-          shop_metricType: {
-            shop: this.shop,
-            metricType: key
-          }
-        },
-        update: {
-          metricData: JSON.stringify(data),
-          calculatedAt: new Date(),
-          expiresAt: new Date(Date.now() + ttlSeconds * 1000)
-        },
-        create: {
-          shop: this.shop,
-          metricType: key,
-          metricData: JSON.stringify(data),
-          expiresAt: new Date(Date.now() + ttlSeconds * 1000)
-        }
-      });
-    } catch (error) {
-      analyticsLogger.error('Cache write error:', error, {
-        shop: this.shop,
-        metricType: key
-      });
-    }
-  }
+  // The setCache method is defined above with the enhanced getCache.
+  // The older getCache method that was here has been removed by a previous step or was not present.
 
   /**
    * Helper: Update customer profiles in DB

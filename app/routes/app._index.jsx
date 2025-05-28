@@ -1,5 +1,5 @@
 import { json, redirect } from "@remix-run/node";
-import { useLoaderData, Link, useNavigate } from "@remix-run/react"; // Added useNavigate
+import { useLoaderData, Link } from "@remix-run/react"; // Added useNavigate
 import { useState } from "react"; // Added useState
 import ErrorBoundary from "../components/ErrorBoundary";
 import {
@@ -26,7 +26,7 @@ import { MetricCard } from "../components/MetricCard";
 import { RevenueTrendChart } from "../components/RevenueTrendChart";
 import { CustomerSegments as CustomerSegmentsComponent } from "../components/CustomerSegments";
 import { DateSelector } from '../components/DateSelector';
-import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { analyticsLogger } from "../services/loggerService";
 import { handleApiError } from "../utils/errorHandling";
 import { formatCurrency } from "../utils/formatters";
@@ -46,7 +46,6 @@ export const loader = async ({ request }) => {
 
     // Default to 30 days if no dates provided
     const endDate = endDateParam ? new Date(endDateParam) : new Date();
-    const startDate = startDateParam ? new Date(startDateParam) : subDays(endDate, 30);
     
     analyticsLogger.debug("Session information", { shop, hasAccessToken: !!accessToken });
     
@@ -216,7 +215,6 @@ export const loader = async ({ request }) => {
 
 function IndexContent() {
   const { revenueData, clvData, error } = useLoaderData();
-  const navigate = useNavigate(); // For programmatic navigation if needed
 
   const [selectedDateRange, setSelectedDateRange] = useState({
     start: new Date(new Date().setDate(new Date().getDate() - 30)),
