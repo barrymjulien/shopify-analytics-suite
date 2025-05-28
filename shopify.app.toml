@@ -3,7 +3,7 @@
 client_id = "6d5d916b270d881f6b901636c675dacb"
 name = "analytics-suite"
 handle = "analytics-suite"
-application_url = "https://produce-dam-combining-indicate.trycloudflare.com"
+application_url = "https://dakota-til-pics-border.trycloudflare.com"
 embedded = true
 
 [build]
@@ -27,10 +27,22 @@ scopes = "write_products"
 
 [auth]
 redirect_urls = [
-  "https://produce-dam-combining-indicate.trycloudflare.com/auth/callback",
-  "https://produce-dam-combining-indicate.trycloudflare.com/auth/shopify/callback",
-  "https://produce-dam-combining-indicate.trycloudflare.com/api/auth/callback"
+  "https://dakota-til-pics-border.trycloudflare.com/auth/callback",
+  "https://dakota-til-pics-border.trycloudflare.com/auth/shopify/callback",
+  "https://dakota-til-pics-border.trycloudflare.com/api/auth/callback"
 ]
 
 [pos]
 embedded = false
+
+[app_proxy]
+url = "https://dakota-til-pics-border.trycloudflare.com/app-proxy"
+subpath = "app-proxy"
+prefix = "apps"
+
+# Add iframe sandbox configuration
+[embed]
+allow_same_origin = true
+allow_scripts = true
+allow_forms = true
+allow_popups = true
